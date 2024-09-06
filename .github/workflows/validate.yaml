@@ -35,6 +35,8 @@ on:
 
   workflow_call:
 
+  workflow_dispatch:
+
 jobs:
 
   # Determine the branch names on which to run the actual jobs below.
