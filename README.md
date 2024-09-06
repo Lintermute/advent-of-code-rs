@@ -65,3 +65,4 @@ where `$DATA_DIR` is:
 - macOS: `$HOME/Library/Application Support`
   (e.g. `/Users/you/Library/Application Support`)
 - Windows: `{FOLDERID_RoamingAppData}` (e.g. `C:\Users\You\AppData\Roaming`)
+
