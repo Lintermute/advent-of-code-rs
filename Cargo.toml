@@ -1,0 +1,9 @@
+[workspace]
+members = [ "aoc", "xtask" ]
+default-members = [ "aoc" ]
+resolver = "2"
+
+[workspace.dependencies]
+clap = { version = "4.3.21", features = ["derive"] }
+lazy_errors = { version = "0.7.0" }
+test-case = "3.1.0"

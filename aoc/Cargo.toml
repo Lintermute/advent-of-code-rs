@@ -1,0 +1,30 @@
+[package]
+name = "aoc"
+authors = ["Andreas Waidler <lintermute@mailbox.org>"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+clap = { workspace = true }
+crossterm = { version = "0.28.1", features = ["event-stream"] }
+derive_more = { version = "1.0.0", features = ["display", "into"] }
+dirs = "5.0.1"
+futures = "0.3.28"
+indoc = "2.0.3"
+itertools = "0.13.0"
+lazy_errors = { workspace = true }
+lazy-regex = "3.1.0"
+num = "0.4.1"
+ratatui = "0.28.1"
+rayon = "1.7.0"
+reqwest = "0.12.5"
+take_mut = "0.2.2"
+temp-env = "0.3.6"
+thiserror = "1.0.56"
+tokio = { version = "1.30.0", features = ["macros", "rt-multi-thread", "sync"] }
+tokio-stream = "0.1.14"
+
+[dev-dependencies]
+tempfile = "3.12.0"
+test-case = { workspace = true }

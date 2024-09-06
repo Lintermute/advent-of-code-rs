@@ -1,0 +1,13 @@
+[package]
+name = "xtask"
+authors = ["Andreas Waidler <lintermute@mailbox.org>"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+clap = { workspace = true }
+lazy_errors = { workspace = true }
+
+[dev-dependencies]
+test-case = { workspace = true }

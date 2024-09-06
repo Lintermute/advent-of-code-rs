@@ -1,0 +1,7 @@
+[default]
+target-dir = "target/tarpaulin" # Avoid recompilation
+skip-clean = true
+fail-under = 10
+
+[report]
+out = ["Html"]
