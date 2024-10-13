@@ -106,9 +106,7 @@ fn parse_years_from_fs(config: &Config) -> Result<Vec<Year>> {
         .or_wrap_with::<Stashable>(|| "Failed to read directory")
         .or_stash(&mut errs));
 
-    // TODO: Add collect_or_stash() to replace
-    // `let ok = filter_map(…push…).collect(); try2!(…); Ok(ok)`.
-    let mut years: Vec<Year> = entries
+    let mut years: Vec<Year> = try2!(entries
         .iter()
         .map(|e| {
             let name = e.file_name();
@@ -129,10 +127,7 @@ fn parse_years_from_fs(config: &Config) -> Result<Vec<Year>> {
                 format!("Failed to parse file name '{name}'")
             })
         })
-        .filter_map(|r| r.map_err(|e| errs.push(e)).ok())
-        .collect();
-
-    try2!(errs.ok());
+        .try_collect_or_stash(&mut errs));
 
     years.sort_unstable();
 

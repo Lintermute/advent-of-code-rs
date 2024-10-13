@@ -77,24 +77,23 @@ impl FromStr for MajorMinorPatch {
             .split('.')
             .collect::<Vec<_>>()
             .try_into()
-            .map_err(|_| {
-                Error::from_message("Invalid number of parts separated by '.'")
+            .map_err(|_| -> Error {
+                err!("Invalid number of parts separated by '.'")
             })
             .or_stash(&mut errs));
 
-        let [major, minor, patch] = tokens.map(|tok| {
-            u16::from_str(tok)
-                .map_err(|_| -> Error { err!("Not a valid number: '{s}'") })
-                .or_stash(&mut errs)
-                .ok()
-        });
-
-        errs.into_result()?;
+        let [major, minor, patch]: [u16; 3] = try2!(tokens.try_map_or_stash(
+            |token| {
+                u16::from_str(token)
+                    .map_err(|_| -> Error { err!("Invalid number: '{token}'") })
+            },
+            &mut errs
+        ));
 
         Ok(Self {
-            major: major.unwrap(),
-            minor: minor.unwrap(),
-            patch: patch.unwrap(),
+            major,
+            minor,
+            patch,
         })
     }
 }
