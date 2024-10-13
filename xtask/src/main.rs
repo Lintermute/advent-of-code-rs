@@ -16,6 +16,7 @@ mod ci;
 mod version;
 
 use core::str;
+
 use std::process::{self, ExitCode, Stdio};
 
 use lazy_errors::{prelude::*, Result};
@@ -120,8 +121,12 @@ fn exec_impl(command_with_args: &[&str], capture: bool) -> Result<String> {
 
     match process.status.code() {
         Some(0) => (),
-        Some(c) => errs.push(format!("Status code was {c}")),
-        None => errs.push("No status code (terminated by signal?)"),
+        Some(c) => {
+            errs.push(format!("Status code was {c}"));
+        }
+        None => {
+            errs.push("No status code (terminated by signal?)");
+        }
     };
 
     let stdout = str_or_stash(&process.stdout, &mut errs);
