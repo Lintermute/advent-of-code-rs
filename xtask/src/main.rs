@@ -153,7 +153,7 @@ fn str_or_stash<'a, F, M>(
 ) -> &'a str
 where
     F: FnOnce() -> M,
-    M: std::fmt::Display,
+    M: core::fmt::Display,
 {
     str::from_utf8(bytes)
         .map(str::trim)

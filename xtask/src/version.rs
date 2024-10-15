@@ -1,4 +1,7 @@
-use std::{fmt::Display, str::FromStr};
+use core::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 use lazy_errors::{prelude::*, Result};
 
@@ -111,7 +114,7 @@ impl FromStr for CustomVersion {
 }
 
 impl Display for VersionNumber {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             VersionNumber::MajorMinorPatch(v) => Display::fmt(v, f),
             VersionNumber::CustomVersion(v) => Display::fmt(v, f),
@@ -120,17 +123,19 @@ impl Display for VersionNumber {
 }
 
 impl Display for MajorMinorPatch {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let major = self.major;
-        let minor = self.minor;
-        let patch = self.patch;
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self {
+            major,
+            minor,
+            patch,
+        } = self;
 
         write!(f, "{major}.{minor}.{patch}")
     }
 }
 
 impl Display for CustomVersion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -142,24 +147,29 @@ pub fn run(command: &Version) -> Result<()> {
 }
 
 fn run_import(args: &ImportArgs) -> Result<()> {
-    let version = crate::exec_and_capture(&["git", "describe", "--dirty"])?;
-    let version = version_from_git_describe(&version)?;
+    crate::exec_and_capture(&["git", "describe", "--dirty"])
+        .and_then(|stdout| parse_and_filter(&stdout, &args.accept))
+        .and_then(|v| crate::exec(&["cargo", "set-version", &v.to_string()]))
+        .or_wrap_with(|| "Failed to set version number based on `git describe`")
+}
 
-    if !is_accepted(&version, &args.accept) {
+fn parse_and_filter(
+    git_output: &str,
+    accept: &[Pattern],
+) -> Result<VersionNumber> {
+    let version = parse_git_describe_output(git_output)?;
+
+    if !is_accepted(&version, accept) {
         return Err(err!(
             "Version '{version}' does not match any `accept` parameter"
         ));
     }
 
-    crate::exec(&["cargo", "set-version", &version.to_string()])
+    Ok(version)
 }
 
-fn version_from_git_describe(output: &str) -> Result<VersionNumber> {
+fn parse_git_describe_output(output: &str) -> Result<VersionNumber> {
     let output = output.trim();
-
-    if output.is_empty() {
-        return Err(err!("Version number is empty"));
-    }
 
     let output = match output.strip_prefix('v') {
         Some(remainder) => remainder,
@@ -198,6 +208,51 @@ mod tests {
         VersionNumber::CustomVersion(CustomVersion(s.to_owned()))
     }
 
+    #[test_case("1.2.3", &[], Ok(v(1, 2, 3)))]
+    #[test_case("1.2.3", &[Pattern::MajorMinorPatch], Ok(v(1, 2, 3)))]
+    #[test_case("v1.2.3", &[], Ok(v(1, 2, 3)))]
+    #[test_case("v1.2.3", &[Pattern::MajorMinorPatch], Ok(v(1, 2, 3)))]
+    #[test_case("0.5.0-2-ga712af5", &[],
+        Ok(custom("0.5.0-2-ga712af5")))]
+    #[test_case("0.5.0-2-ga712af5", &[Pattern::MajorMinorPatch],
+        Err(String::from(
+            "Version '0.5.0-2-ga712af5' does not match any `accept` parameter"
+        )))]
+    #[test_case("v0.5.0-2-ga712af5", &[],
+        Ok(custom("0.5.0-2-ga712af5")))]
+    #[test_case("v0.5.0-2-ga712af5", &[Pattern::MajorMinorPatch],
+        Err(String::from(
+            "Version '0.5.0-2-ga712af5' does not match any `accept` parameter"
+        )))]
+    fn parse_and_filter(
+        input: &str,
+        accept: &[Pattern],
+        expectation: Result<VersionNumber, String>,
+    ) {
+        let actual = super::parse_and_filter(input, accept);
+
+        match expectation {
+            Ok(v) => assert_eq!(v, actual.unwrap()),
+            Err(e) => {
+                let actual = actual.unwrap_err();
+                dbg!(&actual);
+                assert_eq!(actual.to_string(), e);
+            }
+        }
+    }
+
+    #[test]
+    fn parse_major_minor_patch_multiple_err() {
+        let err = super::MajorMinorPatch::from_str("-1.-2.-3").unwrap_err();
+        let msg = format!("{err:#}");
+        eprintln!("{}", msg);
+
+        assert!(msg.starts_with("Doesn't match MAJOR.MINOR.PATCH: '-1.-2.-3'"));
+        assert!(msg.contains("Invalid number: '-1'"));
+        assert!(msg.contains("Invalid number: '-2'"));
+        assert!(msg.contains("Invalid number: '-3'"));
+    }
+
     #[test_case("0.0.0", v(0, 0, 0))]
     #[test_case("0.0.7", v(0, 0, 7))]
     #[test_case("0.7.0", v(0, 7, 0))]
@@ -214,9 +269,15 @@ mod tests {
     #[test_case("abcdef", custom("abcdef"))]
     #[test_case("foobar", custom("foobar"))]
     #[test_case("-1.-2.-3", custom("-1.-2.-3"))]
-    fn version_from_git_describe(input: &str, expectation: VersionNumber) {
-        let actual = super::version_from_git_describe(input).unwrap();
+    fn parse_git_describe_output(input: &str, expectation: VersionNumber) {
+        let actual = super::parse_git_describe_output(input).unwrap();
         assert_eq!(actual, expectation);
+    }
+
+    #[test_case(""; "empty")]
+    #[test_case(" \n\t\r"; "only whitespace")]
+    fn parse_git_describe_output_err(input: &str) {
+        assert!(super::parse_git_describe_output(input).is_err());
     }
 
     #[test_case(v(0, 0, 0), "0.0.0")]
@@ -230,19 +291,42 @@ mod tests {
         assert_eq!(&input.to_string(), expectation);
     }
 
-    #[test_case(""; "empty")]
-    #[test_case(" "; "only whitespace")]
-    fn version_from_git_describe_err(input: &str) {
-        assert!(super::version_from_git_describe(input).is_err());
-    }
-
     #[test_case(v(0, 0, 0), &[], true)]
     #[test_case(v(0, 0, 7), &[], true)]
     #[test_case(v(0, 7, 0), &[], true)]
     #[test_case(v(7, 0, 0), &[], true)]
     #[test_case(v(1, 2, 3), &[], true)]
-    #[test_case(v(0, 5, 0), &[], true)]
     #[test_case(custom("0.5.0-2-ga712af5"), &[], true)]
+    #[test_case(v(0, 0, 0), &[Pattern::MajorMinorPatch], true)]
+    #[test_case(v(0, 0, 7), &[Pattern::MajorMinorPatch], true)]
+    #[test_case(v(0, 7, 0), &[Pattern::MajorMinorPatch], true)]
+    #[test_case(v(7, 0, 0), &[Pattern::MajorMinorPatch], true)]
+    #[test_case(v(1, 2, 3), &[Pattern::MajorMinorPatch], true)]
+    #[test_case(custom("0.5.0-2-ga712af5"), &[Pattern::MajorMinorPatch], false)]
+    #[test_case(
+        v(0, 0, 0),
+        &[Pattern::MajorMinorPatch, Pattern::MajorMinorPatch],
+        true)]
+    #[test_case(
+        v(0, 0, 7),
+        &[Pattern::MajorMinorPatch, Pattern::MajorMinorPatch],
+        true)]
+    #[test_case(
+        v(0, 7, 0),
+        &[Pattern::MajorMinorPatch, Pattern::MajorMinorPatch],
+        true)]
+    #[test_case(
+        v(7, 0, 0),
+        &[Pattern::MajorMinorPatch, Pattern::MajorMinorPatch],
+        true)]
+    #[test_case(
+        v(1, 2, 3),
+        &[Pattern::MajorMinorPatch, Pattern::MajorMinorPatch],
+        true)]
+    #[test_case(
+        custom("0.5.0-2-ga712af5"),
+        &[Pattern::MajorMinorPatch, Pattern::MajorMinorPatch],
+        false)]
     fn is_accepted(v: VersionNumber, accept: &[Pattern], expectation: bool) {
         let actual = super::is_accepted(&v, accept);
         assert_eq!(actual, expectation);
