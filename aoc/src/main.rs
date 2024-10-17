@@ -271,10 +271,8 @@ mod tests {
     }
 
     #[tokio::test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     async fn run_loop_sends_events_to_ui() -> Result<()> {
-        let config = fs::create_test_config()?;
-
         let solvers = &[
             solver!(Y21, D01, mock_ok_1, mock_ok_2, mock_prep_ok),
             solver!(Y21, D02, mock_err, mock_ok_1, mock_prep_ok),
@@ -283,6 +281,23 @@ mod tests {
             solver!(Y21, D05, mock_panic, mock_err, mock_prep_ok),
             solver!(Y21, D06, mock_panic, mock_panic, mock_prep_panic),
         ];
+
+        // If we don't create the puzzle input files for those solvers,
+        // the system would try to download them automatically.
+
+        let tempdir = fs::tempdir()?;
+
+        let mut path = tempdir.path().to_path_buf();
+        path.push("personal_puzzle_inputs");
+        std::fs::create_dir(&path).unwrap();
+
+        for d in ["d01", "d02", "d03", "d04", "d05", "d06"] {
+            let mut path = path.clone();
+            path.push(format!("y21{d}_personal_puzzle_input.txt"));
+            std::fs::write(&path, "").unwrap();
+        }
+
+        let config = fs::create_config_for(&tempdir)?;
 
         let filter = Filter::from(vec![
             FilterTerm::from_str("y21d01")?,
@@ -774,7 +789,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn print_leaderboard_y21() -> Result<()> {
         let expected = indoc! {"\
             Advent of Code 2021 - Personal Leaderboard Statistics
@@ -812,11 +827,11 @@ mod tests {
             MAX       >24h  34128      0       >24h  32547      0
         "};
 
-        print_stats_and_assert_output(&["y21"], expected)
+        verify_stats(&["y21"], expected)
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn print_leaderboards_y20d01_y21d05_y21d06() -> Result<()> {
         // Note: Each board will be formatted with it's own width,
         // determined by the length (in chars) of its largest rank.
@@ -841,11 +856,11 @@ mod tests {
             MAX   00:45:25  6042      0   01:01:39  5242      0
         "};
 
-        print_stats_and_assert_output(&["y20d01", "y21d05", "y21d06"], expected)
+        verify_stats(&["y20d01", "y21d05", "y21d06"], expected)
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn print_all_leaderboards() -> Result<()> {
         let expected = indoc! {"\
             Advent of Code 2020 - Personal Leaderboard Statistics
@@ -891,7 +906,7 @@ mod tests {
             MAX       >24h  34128      0       >24h  32547      0
         "};
 
-        print_stats_and_assert_output(&[], expected)
+        verify_stats(&[], expected)
     }
 
     async fn spawn_actors_and_await_events(
@@ -906,12 +921,7 @@ mod tests {
         rx.collect().await
     }
 
-    fn print_stats_and_assert_output(
-        filters: &[&str],
-        expected_output: &str,
-    ) -> Result<()> {
-        let config = fs::create_test_config()?;
-
+    fn verify_stats(filters: &[&str], expected_output: &str) -> Result<()> {
         let filter = Filter::from(
             filters
                 .iter()
@@ -919,6 +929,55 @@ mod tests {
                 .collect_vec(),
         );
 
+        let tempdir = fs::tempdir()?;
+
+        let mut stats_dir = tempdir.path().to_path_buf();
+        stats_dir.push("personal_leaderboard_statistics");
+        std::fs::create_dir(&stats_dir).unwrap();
+
+        let mut y20_stats_file = stats_dir.clone();
+        y20_stats_file.push("y20_personal_leaderboard_statistics.txt");
+        std::fs::write(&y20_stats_file, indoc! {"\
+                  --------Part 1---------   -------Part 2--------
+            Day       Time    Rank  Score       Time  Rank  Score
+              1       >24h  187123      0          -     -      -
+        "})
+        .unwrap();
+
+        let mut y21_stats_file = stats_dir.clone();
+        y21_stats_file.push("y21_personal_leaderboard_statistics.txt");
+        std::fs::write(&y21_stats_file, indoc! {"\
+                  --------Part 1--------   --------Part 2--------
+            Day       Time   Rank  Score       Time   Rank  Score
+             25       >24h  13830      0       >24h  10293      0
+             24       >24h   6382      0       >24h   6250      0
+             23       >24h  11373      0       >24h  11998      0
+             22       >24h  20610      0       >24h  14796      0
+             21       >24h  24976      0       >24h  18838      0
+             20       >24h  22022      0       >24h  21682      0
+             19       >24h  16028      0       >24h  15785      0
+             18   05:45:04   4263      0   05:57:35   4200      0
+             17   01:42:33   5577      0   01:47:33   4755      0
+             16       >24h  32382      0       >24h  30839      0
+             15   00:41:26   2841      0   01:13:18   2453      0
+             14   00:44:13   6857      0   09:30:55  17848      0
+             13   00:29:47   3233      0   00:39:18   3149      0
+             12   01:13:40   5662      0   01:25:08   4642      0
+             11   00:30:47   2625      0   00:40:21   3213      0
+             10   00:18:20   4023      0   00:33:42   4230      0
+              9   00:44:45   8618      0   03:46:18  13025      0
+              8   00:27:01   7501      0   02:15:34   6812      0
+              7   00:21:00   8179      0   00:25:22   6415      0
+              6   00:14:37   5023      0   00:29:07   3395      0
+              5   00:45:25   6042      0   01:01:39   5242      0
+              4   01:07:48   6677      0   01:25:47   6346      0
+              3   00:24:26   8496      0   01:04:05   7054      0
+              2   03:39:44  34128      0   03:50:44  32547      0
+              1   00:20:32   6893      0   00:24:50   5662      0
+        "})
+        .unwrap();
+
+        let config = fs::create_config_for(&tempdir)?;
         let mut buffer = Vec::new();
         super::print_stats(&config, &filter, &mut buffer)
             .or_wrap_with(|| "print_stats() failed")?;

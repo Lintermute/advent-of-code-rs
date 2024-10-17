@@ -1,2 +1,0 @@
-Presence of this file makes a test fail.
-We need it to check that the code handles errors correctly.

@@ -176,11 +176,13 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config…`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn parse_from_fs_when_subdir_does_not_exist() -> Result<()> {
         // Both $REPO_DIR and $DATA_DIR exist,
         // but "${DATA_DIR}/personal_leaderboard_statistics" does not.
-        let config = fs::create_test_config_for_dir_thats_empty()?;
+        let tempdir = fs::tempdir()?;
+        let config = fs::create_config_for(&tempdir)?;
+
         let path = config
             .personal_leaderboard_dir()
             .to_string_lossy()
@@ -197,9 +199,18 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config…`
-    fn parse_from_fs_when_dir_contains_invalid_files() -> Result<()> {
-        let config = fs::create_test_config_for_dir_with_invalid_files()?;
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_in`
+    fn parse_from_fs_when_dir_contains_unrecognized_file_name() -> Result<()> {
+        let tempdir = fs::tempdir()?;
+
+        let mut path = tempdir.path().to_path_buf();
+        path.push("personal_leaderboard_statistics");
+        std::fs::create_dir(&path).unwrap();
+
+        path.push("this_file_makes_tests_fail");
+        std::fs::write(&path, "").unwrap();
+
+        let config = fs::create_config_for(&tempdir)?;
         let path = config
             .personal_leaderboard_dir()
             .to_string_lossy()
@@ -209,22 +220,58 @@ mod tests {
         let msg = format!("{:#}", result.unwrap_err());
 
         dbg!(&msg);
+        assert!(msg.contains(&path));
+        assert!(msg.contains(
+            "Failed to parse file name \
+            'this_file_makes_tests_fail'"
+        ));
         assert!(msg.contains(
             "File name does not match pattern \
              'yYY_personal_leaderboard_statistics.txt'"
         ));
-        assert!(msg.contains(
-            "Failed to parse file name 'this_file_makes_tests_fail'"
-        ));
-        assert!(msg.contains(&path));
 
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_in`
+    fn parse_from_fs_when_dir_contains_file_out_of_range() -> Result<()> {
+        let tempdir = fs::tempdir()?;
+
+        let mut path = tempdir.path().to_path_buf();
+        path.push("personal_leaderboard_statistics");
+        std::fs::create_dir(&path).unwrap();
+
+        path.push("y99_personal_leaderboard_statistics.txt");
+        std::fs::write(&path, "").unwrap();
+
+        let config = fs::create_config_for(&tempdir)?;
+        let path = config
+            .personal_leaderboard_dir()
+            .to_string_lossy()
+            .to_string();
+
+        let result = parse_leaderboards_from_fs(&config, &Filter::default());
+        let msg = format!("{:#}", result.unwrap_err());
+
+        dbg!(&msg);
+        assert!(msg.contains(&path));
+        assert!(msg.contains(
+            "Failed to parse file name \
+            'y99_personal_leaderboard_statistics.txt'"
+        ));
+        assert!(msg.contains("Year 2099 is out of range"));
+
+        Ok(())
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_in`
     fn parse_from_fs_when_leaderboard_does_not_exist() -> Result<()> {
-        let config = fs::create_test_config()?;
+        // Both $REPO_DIR and $DATA_DIR exist,
+        // but "${DATA_DIR}/personal_leaderboard_statistics" does not.
+        let tempdir = fs::tempdir()?;
+        let config = fs::create_config_for(&tempdir)?;
         let path = config
             .personal_leaderboard_dir()
             .to_string_lossy()
