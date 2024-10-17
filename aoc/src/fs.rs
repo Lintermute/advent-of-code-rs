@@ -14,6 +14,9 @@ use crate::ident::{Day, Id, Year};
 #[cfg(test)]
 use crate::ident::Part;
 
+#[cfg(test)]
+use tempfile::TempDir;
+
 const APP_SUBDIR_NAME: &str = "advent_of_code";
 const LEADERBOARD_SUBDIR_NAME: &str = "personal_leaderboard_statistics";
 
@@ -392,55 +395,6 @@ impl CacheDir {
     }
 }
 
-#[cfg(test)]
-pub fn create_test_config() -> Result<Config> {
-    let repo_dir = RepoDir::from_env_or_cargo()?;
-
-    let mut test_data_path = repo_dir.as_ref().to_path_buf();
-    test_data_path.push("test");
-
-    let data_dir = DataDir::try_from(test_data_path.as_path())?;
-    let config_dir = ConfigDir::new(test_data_path.as_path())?;
-    let cache_dir = CacheDir::new(test_data_path.as_path())?;
-
-    let config = Config::from(repo_dir, data_dir, config_dir, cache_dir);
-
-    Ok(config)
-}
-
-#[cfg(test)]
-pub fn create_test_config_for_dir_thats_empty() -> Result<Config> {
-    let repo_dir = RepoDir::from_env_or_cargo()?;
-
-    let mut test_data_path = repo_dir.as_ref().to_path_buf();
-    test_data_path.push("test/empty");
-
-    let data_dir = DataDir::try_from(test_data_path.as_path())?;
-    let config_dir = ConfigDir::new(test_data_path.as_path())?;
-    let cache_dir = CacheDir::new(test_data_path.as_path())?;
-
-    let config = Config::from(repo_dir, data_dir, config_dir, cache_dir);
-
-    Ok(config)
-}
-
-#[cfg(test)]
-pub fn create_test_config_for_dir_with_invalid_files() -> Result<Config> {
-    let repo_dir = RepoDir::from_env_or_cargo()?;
-
-    let mut test_data_path = repo_dir.as_ref().to_path_buf();
-    test_data_path.push("test");
-    test_data_path.push("error");
-
-    let data_dir = DataDir::try_from(test_data_path.as_path())?;
-    let config_dir = ConfigDir::new(test_data_path.as_path())?;
-    let cache_dir = CacheDir::new(test_data_path.as_path())?;
-
-    let config = Config::from(repo_dir, data_dir, config_dir, cache_dir);
-
-    Ok(config)
-}
-
 pub fn create_dir_all<P>(path: P) -> Result<()>
 where
     P: AsRef<Path>,
@@ -534,18 +488,43 @@ fn parse_utf8(bytes: &[u8]) -> Result<&str> {
 }
 
 #[cfg(test)]
-mod tests {
-    use tempfile::{tempdir, TempDir};
+pub fn tempdir() -> Result<TempDir> {
+    tempfile::tempdir().or_wrap_with(|| "Failed to create tempdir")
+}
 
-    use crate::ident::{D01, D14, D15, D16, D25, Y21};
+/// Creates a [`Config`] whose paths all point to `path`.
+///
+/// You can pass _a reference to_ a [`tempfile::TempDir`] value,
+/// thereby ensuring it does not go out of scope
+/// since that would delete the corresponding directory on the filesystem.
+#[cfg(test)]
+pub fn create_config_for<P>(path: P) -> Result<Config>
+where
+    P: AsRef<Path>,
+{
+    let repo_dir = RepoDir::from_env_or_cargo()?;
+
+    let path = path.as_ref();
+    let data_dir = DataDir::try_from(path)?;
+    let config_dir = ConfigDir::new(path)?;
+    let cache_dir = CacheDir::new(path)?;
+
+    Ok(Config::from(repo_dir, data_dir, config_dir, cache_dir))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use tempfile::NamedTempFile;
 
     use super::*;
 
     #[test]
-    #[cfg_attr(all(windows, miri), ignore)] // Because of `create_temp_dir`
+    #[cfg_attr(all(windows, miri), ignore)] // Because of `tempdir`
     fn create_config_dir() -> Result<()> {
-        let (temp_dir, _) = create_temp_dir()?;
-        ConfigDir::new(temp_dir.path())?;
+        let tempdir = tempdir()?;
+        ConfigDir::new(tempdir.path())?;
         Ok(())
     }
 
@@ -553,27 +532,27 @@ mod tests {
     #[cfg_attr(miri, ignore)] // Because of `set_permissions`
     #[cfg(not(windows))] // Windows allows creating a subdir in a readonly dir
     fn create_config_dir_when_parent_readonly() -> Result<()> {
-        let (temp_dir, temp_dir_path) = create_temp_dir_readonly()?;
+        let (tempdir, tempdir_path) = tempdir_readonly_with_path()?;
 
-        let mut path = temp_dir.path().to_path_buf();
+        let mut path = tempdir.path().to_path_buf();
         path.push("bad_config_dir");
 
         let err = ConfigDir::new(&path).unwrap_err();
         let msg = err.to_string();
 
-        dbg!(&msg, &temp_dir_path);
+        dbg!(&msg, &tempdir_path);
         assert!(msg.contains("Failed to create user config directory"));
-        assert!(msg.contains(&temp_dir_path));
+        assert!(msg.contains(&tempdir_path));
         assert!(msg.contains("bad_config_dir"));
 
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(all(windows, miri), ignore)] // Because of `create_temp_dir`
+    #[cfg_attr(all(windows, miri), ignore)] // Because of `tempdir`
     fn create_cache_dir() -> Result<()> {
-        let (temp_dir, _) = create_temp_dir()?;
-        CacheDir::new(temp_dir.path())?;
+        let tempdir = tempdir()?;
+        CacheDir::new(tempdir.path())?;
         Ok(())
     }
 
@@ -581,17 +560,17 @@ mod tests {
     #[cfg_attr(miri, ignore)] // Because of `set_permissions`
     #[cfg(not(windows))] // Windows allows creating a subdir in a readonly dir
     fn create_cache_dir_when_parent_readonly() -> Result<()> {
-        let (temp_dir, temp_dir_path) = create_temp_dir_readonly()?;
+        let (tempdir, tempdir_path) = tempdir_readonly_with_path()?;
 
-        let mut path = temp_dir.path().to_path_buf();
+        let mut path = tempdir.path().to_path_buf();
         path.push("bad_cache_dir");
 
         let err = CacheDir::new(&path).unwrap_err();
         let msg = err.to_string();
 
-        dbg!(&msg, &temp_dir_path);
+        dbg!(&msg, &tempdir_path);
         assert!(msg.contains("Failed to create cache directory"));
-        assert!(msg.contains(&temp_dir_path));
+        assert!(msg.contains(&tempdir_path));
         assert!(msg.contains("bad_cache_dir"));
 
         Ok(())
@@ -601,23 +580,24 @@ mod tests {
     #[cfg_attr(miri, ignore)] // Because of `set_permissions`
     #[cfg(not(windows))] // Windows allows creating a subdir in a readonly dir
     fn create_cache_dir_when_itself_readonly() -> Result<()> {
-        let (temp_dir, temp_dir_path) = create_temp_dir_readonly()?;
-        let err = CacheDir::new(temp_dir.path()).unwrap_err();
+        let (tempdir, tempdir_path) = tempdir_readonly_with_path()?;
+        let err = CacheDir::new(tempdir.path()).unwrap_err();
         let msg = err.to_string();
 
-        dbg!(&msg, &temp_dir_path);
+        dbg!(&msg, &tempdir_path);
         assert!(
             msg.contains("Failed to create personal puzzle inputs directory")
         );
-        assert!(msg.contains(&temp_dir_path));
+        assert!(msg.contains(&tempdir_path));
 
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn session_cookie() -> Result<()> {
-        let mut config = create_test_config()?;
+        let tempdir = tempdir()?;
+        let mut config = create_config_for(&tempdir)?;
 
         // Make sure the cookie does not exist if the last test run was aborted.
         config.delete_session_cookie()?;
@@ -642,86 +622,89 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn personal_puzzle_input() -> Result<()> {
-        let mut config = create_test_config()?;
+        use crate::ident::{D01, D02, Y21};
 
-        let input = config.read_personal_puzzle_input(Y21, D25)?;
+        let tempdir = tempdir()?;
+        let mut config = create_config_for(&tempdir)?;
+
+        let input = config.read_personal_puzzle_input(Y21, D02)?;
         assert!(input.is_none());
 
-        config.save_personal_puzzle_input(Y21, D15, "mock input 1")?;
-        let input = config.read_personal_puzzle_input(Y21, D15)?;
+        config.save_personal_puzzle_input(Y21, D01, "mock input 1")?;
+        let input = config.read_personal_puzzle_input(Y21, D01)?;
         assert_eq!(input.unwrap(), "mock input 1");
 
-        config.save_personal_puzzle_input(Y21, D15, "mock input 2")?;
-        let input = config.read_personal_puzzle_input(Y21, D15)?;
+        config.save_personal_puzzle_input(Y21, D01, "mock input 2")?;
+        let input = config.read_personal_puzzle_input(Y21, D01)?;
         assert_eq!(input.unwrap(), "mock input 2");
 
         // Must be idempotent.
-        config.save_personal_puzzle_input(Y21, D15, "mock input 1")?;
-        config.save_personal_puzzle_input(Y21, D15, "mock input 1")?;
-        let input = config.read_personal_puzzle_input(Y21, D15)?;
+        config.save_personal_puzzle_input(Y21, D01, "mock input 1")?;
+        config.save_personal_puzzle_input(Y21, D01, "mock input 1")?;
+        let input = config.read_personal_puzzle_input(Y21, D01)?;
         assert_eq!(input.unwrap(), "mock input 1");
 
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `tempfile`
     fn open_ok() -> Result<()> {
         open(good_file()?)?;
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `tempfile`
     fn open_err() -> Result<()> {
-        let err = open(missing_file_y21d25()?).unwrap_err();
+        let (_dir, file, name) = missing_file()?;
+        let err = open(file).unwrap_err();
         let msg = err.to_string();
         dbg!(&msg);
         assert!(msg.starts_with("Failed to open"));
-        assert!(msg.contains("y21d25"));
+        assert!(msg.contains(&name));
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `tempfile`
     fn read_to_string_ok() -> Result<()> {
-        assert_eq!(
-            read_to_string(good_file()?)?,
-            "File presence and correct contents are required for tests\n"
-        );
+        assert_eq!(read_to_string(good_file()?)?, "Valid file contents\n");
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `tempfile`
     fn read_to_string_missing() -> Result<()> {
-        let err = read_to_string(missing_file_y21d25()?).unwrap_err();
+        let (_dir, file, name) = missing_file()?;
+        let err = read_to_string(file).unwrap_err();
         let msg = err.to_string();
         dbg!(&msg);
         assert!(msg.starts_with("Failed to open"));
-        assert!(msg.contains("y21d25"));
+        assert!(msg.contains(&name));
         Ok(())
     }
 
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `tempfile`
     fn read_to_string_err() -> Result<()> {
-        let err = read_to_string(existing_file_non_utf8()?).unwrap_err();
+        let (file, name) = existing_file_non_utf8()?;
+        let err = read_to_string(file).unwrap_err();
         let msg = err.to_string();
         dbg!(&msg);
         assert!(msg.starts_with("Failed to read contents"));
-        assert!(msg.contains("y21d14"));
+        assert!(msg.contains(&name));
         Ok(())
     }
 
     // Cannot test errors, because error behavior is too platform dependent.
     // Check the docs of `std::fs::write` for details.
     #[test]
-    #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_test_config`
+    #[cfg_attr(miri, ignore)] // Because of `tempfile`
     fn write_ok() -> Result<()> {
-        let file = malleable_file()?;
+        let file = good_file()?;
 
         write(&file, "mock contents 1")?;
         let contents = read_to_string(&file)?;
@@ -740,17 +723,15 @@ mod tests {
         Ok(())
     }
 
-    fn create_temp_dir() -> Result<(TempDir, String)> {
-        let temp_dir = tempdir().or_wrap()?;
-
-        let temp_dir_path = temp_dir.path().display().to_string();
-
-        Ok((temp_dir, temp_dir_path))
+    fn tempdir() -> Result<TempDir> {
+        tempfile::tempdir().or_wrap()
     }
 
     #[cfg(not(windows))] // Windows allows creating a subdir in a readonly dir
-    fn create_temp_dir_readonly() -> Result<(TempDir, String)> {
-        let (dir, path) = create_temp_dir()?;
+    fn tempdir_readonly_with_path() -> Result<(TempDir, String)> {
+        let dir = tempdir()?;
+        let path = dir.path().display().to_string();
+
         let mut perms = std::fs::metadata(&dir)
             .unwrap()
             .permissions();
@@ -760,41 +741,41 @@ mod tests {
         Ok((dir, path))
     }
 
-    // TODO: Replace helpers below by test-specific setups using TempDir
-    // and remove checked in test files.
-
-    fn good_file() -> Result<PathBuf> {
-        let file = create_test_config()?
-            .cache_dir
-            .personal_puzzle_input_file(Y21, D01);
-
-        assert!(file.exists());
-        Ok(file)
+    fn good_file() -> Result<NamedTempFile> {
+        let (tempfile, _path) = mktempf(b"Valid file contents\n")?;
+        Ok(tempfile)
     }
 
-    fn existing_file_non_utf8() -> Result<PathBuf> {
-        let file = create_test_config()?
-            .cache_dir
-            .personal_puzzle_input_file(Y21, D14);
-
-        assert!(file.exists());
-        Ok(file)
+    fn existing_file_non_utf8() -> Result<(NamedTempFile, String)> {
+        mktempf(b"Non-UTF contents: \x00\x9F\x92\x96\n")
     }
 
-    fn malleable_file() -> Result<PathBuf> {
-        let file = create_test_config()?
-            .cache_dir
-            .personal_puzzle_input_file(Y21, D16);
-        // May or may not exist.
-        Ok(file)
+    fn missing_file() -> Result<(TempDir, PathBuf, String)> {
+        let dir = tempdir()?;
+        let name = String::from("unexisting_file");
+
+        let mut path = dir.path().to_path_buf();
+        path.push(&name);
+
+        assert!(!path.exists());
+        Ok((dir, path, name))
     }
 
-    fn missing_file_y21d25() -> Result<PathBuf> {
-        let file = create_test_config()?
-            .cache_dir
-            .personal_puzzle_input_file(Y21, D25);
+    fn mktempf(content: &[u8]) -> Result<(NamedTempFile, String)> {
+        let mut file = NamedTempFile::new().or_wrap()?;
 
-        assert!(!file.exists());
-        Ok(file)
+        file.write_all(content).or_wrap()?;
+
+        let name = file
+            .path()
+            .file_name()
+            .ok_or_else(|| err!("Temporary file is missing its path"))?;
+
+        let name = name.to_str().ok_or_else(|| {
+            err!("Temporary file has invalid characters: '{name:?}'")
+        })?;
+
+        let name = name.to_owned();
+        Ok((file, name))
     }
 }

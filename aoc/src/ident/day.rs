@@ -12,14 +12,6 @@ pub const D04: Day = Day(4);
 pub const D05: Day = Day(5);
 #[cfg(test)]
 pub const D06: Day = Day(6);
-#[cfg(test)]
-pub const D14: Day = Day(14);
-#[cfg(test)]
-pub const D15: Day = Day(15);
-#[cfg(test)]
-pub const D16: Day = Day(16);
-#[cfg(test)]
-pub const D25: Day = Day(25);
 
 /// Day of an Advent of Code challenge in the range `1..=25`.
 ///
