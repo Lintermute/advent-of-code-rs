@@ -13,6 +13,8 @@ pub const D05: Day = Day(5);
 #[cfg(test)]
 pub const D06: Day = Day(6);
 
+pub const D15: Day = Day(15);
+
 /// Day of an Advent of Code challenge in the range `1..=25`.
 ///
 /// Most notably, this struct is part of [`Spec`].
