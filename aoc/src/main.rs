@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 
 use downloader::Downloader;
 use fs::Config;
-use ident::{Filter, Id, D01, D02, D03, P1, P2, Y21};
+use ident::{Filter, Id, D01, D02, D03, D15, P1, P2, Y21, Y23};
 use solver::{Event, Parts, Solver};
 use ui::{Summary, Terminated, Ui};
 
@@ -32,6 +32,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y21, D01, y21d01::part1, y21d01::part2, y21d01::parse),
     solver!(Y21, D02, y21d02::part1, y21d02::part2),
     solver!(Y21, D03, y21d03::part1, y21d03::part2, y21d03::parse),
+    solver!(Y23, D15, y23d15::part1, y23d15::part2, y23d15::parse),
 ];
 
 #[derive(Debug)]
@@ -249,6 +250,7 @@ mod tests {
         (Y21, D01, Parts::Both),
         (Y21, D02, Parts::Both),
         (Y21, D03, Parts::Both),
+        (Y23, D15, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
         let filter = Filter::from(
@@ -756,6 +758,8 @@ mod tests {
     #[test_case("y21d02p2")]
     #[test_case("y21d03p1")]
     #[test_case("y21d03p2")]
+    #[test_case("y23d15p1")]
+    #[test_case("y23d15p2")]
     #[tokio::test]
     #[ignore] // Requires manually saving the personal puzzles answers before
     async fn solve_personal_inputs(filter: &str) -> Result<()> {

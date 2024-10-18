@@ -146,15 +146,14 @@ impl Config {
     }
 
     #[cfg(test)]
-    #[allow(dead_code)] // TODO
-    pub fn example_puzzle_input_file(
+    pub fn read_example_puzzle_input(
         &self,
         y: Year,
         d: Day,
         label: &str,
-    ) -> Result<PathBuf> {
+    ) -> Result<String> {
         self.repo_dir
-            .example_puzzle_input_file(y, d, label)
+            .read_personal_puzzle_input(y, d, label)
     }
 
     #[cfg(test)]
@@ -182,6 +181,21 @@ impl RepoDir {
     }
 
     #[cfg(test)]
+    pub fn read_personal_puzzle_input(
+        &self,
+        y: Year,
+        d: Day,
+        label: &str,
+    ) -> Result<String> {
+        self.example_puzzle_input_file(y, d, label)
+            .and_then(read_to_string)
+            .or_wrap_with(|| {
+                let id = Id((y, d));
+                format!("Failed to read {id} example puzzle input '{label}'")
+            })
+    }
+
+    #[cfg(test)]
     pub fn example_puzzle_input_file(
         &self,
         y: Year,
@@ -191,7 +205,9 @@ impl RepoDir {
         let id = Id((y, d));
 
         let mut path = self.path.clone();
-        path.push(format!("aoc/examples/{id}_example_input_{label}.txt"));
+        path.push(format!(
+            "aoc/examples/{id}/{id}_example_puzzle_input_{label}.txt"
+        ));
 
         Ok(path)
     }

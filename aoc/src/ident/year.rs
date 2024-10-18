@@ -1,6 +1,7 @@
 use lazy_errors::{prelude::*, Result};
 
 pub const Y21: Year = Year(2021);
+pub const Y23: Year = Year(2023);
 
 /// Year of an Advent of Code challenge, such as `2021`.
 ///
