@@ -16,7 +16,7 @@ itertools = "0.13.0"
 lazy_errors = { workspace = true }
 lazy-regex = "3.1.0"
 num = "0.4.1"
-ratatui = "0.28.1"
+ratatui = "0.29.0"
 rayon = "1.7.0"
 reqwest = "0.12.5"
 take_mut = "0.2.2"
