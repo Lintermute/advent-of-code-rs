@@ -551,9 +551,12 @@ fn format_column_answer_and_time(
 }
 
 fn format_time(duration: &Duration) -> String {
-    if duration < &Duration::from_millis(10_000) {
-        let ms = duration.as_millis();
-        return format!("{ms:>4} ms");
+    for (factor, symbol) in [(1, "µs"), (1_000, "ms")] {
+        if duration < &Duration::from_micros(10_000 * factor) {
+            let micros = duration.as_micros();
+            let t = micros / u128::from(factor);
+            return format!("{t:>4} {symbol}");
+        }
     }
 
     for (factor, symbol) in [(1, "s"), (60, "m"), (3600, "h")] {
@@ -599,28 +602,31 @@ mod tests {
         assert_eq!(&actual, expected);
     }
 
-    #[test_case("1234 ms", 1234)]
-    #[test_case("   0 ms", 0)]
-    #[test_case("9999 ms", 9999)]
-    #[test_case("10.0 s ", 10_000)]
-    #[test_case("10.0 s ", 10_001)]
-    #[test_case("10.0 s ", 10_010)]
-    #[test_case("10.0 s ", 10_099)]
-    #[test_case("10.1 s ", 10_100)]
-    #[test_case("10.9 s ", 10_999)]
-    #[test_case("11.9 s ", 11_999)]
-    #[test_case("12.0 s ", 12_000)]
-    #[test_case("60.0 s ", 60_000)]
-    #[test_case("99.9 s ", 99_999)]
-    #[test_case(" 1.6 m ", 100_000)]
-    #[test_case(" 1.9 m ", 119_999)]
-    #[test_case(" 2.0 m ", 120_000)]
-    #[test_case("99.9 m ", 5_999_999)]
-    #[test_case(" 1.6 h ", 6_000_000)]
-    #[test_case("99.9 h ", 359_999_999)]
-    #[test_case("  🧙   ", 360_000_000)]
-    fn format_time(expected: &str, millis: u64) {
-        let t = Duration::from_millis(millis);
+    #[test_case("   0 µs", 0)]
+    #[test_case("1234 µs", 1_234; "1234 micros")]
+    #[test_case("1234 ms", 1_234_001)]
+    #[test_case("1234 ms", 1_234_500)]
+    #[test_case("1234 ms", 1_234_999)]
+    #[test_case("9999 ms", 9_999_999)]
+    #[test_case("10.0 s ", 10_000_000)]
+    #[test_case("10.0 s ", 10_001_000)]
+    #[test_case("10.0 s ", 10_010_000)]
+    #[test_case("10.0 s ", 10_099_999)]
+    #[test_case("10.1 s ", 10_100_000)]
+    #[test_case("10.9 s ", 10_999_999)]
+    #[test_case("11.9 s ", 11_999_999)]
+    #[test_case("12.0 s ", 12_000_000)]
+    #[test_case("60.0 s ", 60_000_000)]
+    #[test_case("99.9 s ", 99_999_999)]
+    #[test_case(" 1.6 m ", 100_000_000)]
+    #[test_case(" 1.9 m ", 119_999_999)]
+    #[test_case(" 2.0 m ", 120_000_000)]
+    #[test_case("99.9 m ", 5_999_999_999)]
+    #[test_case(" 1.6 h ", 6_000_000_000)]
+    #[test_case("99.9 h ", 359_999_999_999)]
+    #[test_case("  🧙   ", 360_000_000_000)]
+    fn format_time(expected: &str, micros: u64) {
+        let t = Duration::from_micros(micros);
         let actual = super::format_time(&t);
         assert_eq!(expected, &actual);
     }
