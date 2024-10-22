@@ -567,7 +567,7 @@ fn format_time(duration: &Duration) -> String {
         }
     }
 
-    panic!("🧙‍♂️")
+    String::from("  🧙   ")
 }
 
 #[cfg(test)]
@@ -618,6 +618,7 @@ mod tests {
     #[test_case("99.9 m ", 5_999_999)]
     #[test_case(" 1.6 h ", 6_000_000)]
     #[test_case("99.9 h ", 359_999_999)]
+    #[test_case("  🧙   ", 360_000_000)]
     fn format_time(expected: &str, millis: u64) {
         let t = Duration::from_millis(millis);
         let actual = super::format_time(&t);
