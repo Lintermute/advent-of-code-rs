@@ -69,7 +69,7 @@ impl Display for Leaderboard {
     }
 }
 
-impl<'a> Display for Adjusted<'a, HeaderRow1> {
+impl Display for Adjusted<'_, HeaderRow1> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "   ")?;
 
@@ -83,7 +83,7 @@ impl<'a> Display for Adjusted<'a, HeaderRow1> {
     }
 }
 
-impl<'a> Display for Adjusted<'a, HeaderRow2> {
+impl Display for Adjusted<'_, HeaderRow2> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Day")?;
 
@@ -106,7 +106,7 @@ impl<'a> Display for Adjusted<'a, HeaderRow2> {
     }
 }
 
-impl<'a, T: Display> Display for Adjusted<'a, Row<T>> {
+impl<T: Display> Display for Adjusted<'_, Row<T>> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:3}", self.element.label)?;
 
