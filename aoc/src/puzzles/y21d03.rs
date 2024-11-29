@@ -3,7 +3,7 @@ use lazy_errors::{prelude::*, Result};
 use crate::parser;
 
 pub fn parse(input: String) -> Result<Vec<String>> {
-    parser::parse_all(input.lines()).collect()
+    parser::parse_each(input.lines()).collect()
 }
 
 pub fn part1(numbers: &[String]) -> Result<usize> {

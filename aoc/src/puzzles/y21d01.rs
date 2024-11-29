@@ -6,7 +6,7 @@ use lazy_errors::Result;
 use crate::parser;
 
 pub fn parse(input: String) -> Result<Vec<usize>> {
-    parser::parse_all(input.lines()).collect()
+    parser::parse_each(input.lines()).collect()
 }
 
 pub fn part1(numbers: &[usize]) -> Result<usize> {
