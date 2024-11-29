@@ -72,10 +72,10 @@ pub fn parse_leaderboard(
 ) -> Result<Option<Leaderboard>> {
     let msg = || format!("Failed to parse {year} leaderboard");
 
-    let _: HeaderRow1 = parser::try_parse_next(&mut lines).or_wrap_with(msg)?;
-    let _: HeaderRow2 = parser::try_parse_next(&mut lines).or_wrap_with(msg)?;
+    let _: HeaderRow1 = parser::parse_next_ok(&mut lines).or_wrap_with(msg)?;
+    let _: HeaderRow2 = parser::parse_next_ok(&mut lines).or_wrap_with(msg)?;
 
-    let days: Vec<Row<Day>> = parser::parse_all_ok(lines)
+    let days: Vec<Row<Day>> = parser::parse_each_ok(lines)
         .filter_ok(|row: &Row<Day>| filter.matches_year_day(year, row.label))
         .try_collect()
         .or_wrap_with(msg)?;

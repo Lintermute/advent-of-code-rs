@@ -19,19 +19,17 @@ enum Action {
 struct Diff(isize, isize);
 
 pub fn part1(input: &str) -> Result<isize> {
-    let result = parser::parse_all(input.lines()).try_fold::<_, _, Result<_>>(
-        (0, 0),
-        |(x, y), diff| {
+    let result = parser::parse_each(input.lines())
+        .try_fold::<_, _, Result<_>>((0, 0), |(x, y), diff| {
             let Diff(xi, yi) = diff?;
             Ok((x + xi, y + yi))
-        },
-    )?;
+        })?;
 
     Ok(result.0 * result.1)
 }
 
 pub fn part2(input: &str) -> Result<isize> {
-    let mut actions = parser::parse_all(input.lines());
+    let mut actions = parser::parse_each(input.lines());
     let (x, y, _a) = actions.try_fold::<_, _, Result<_>>(
         (0, 0, 0),
         |(x, y, a), action| match action? {

@@ -377,6 +377,8 @@ async fn run_loop(
     ui.render()?;
 
     if some_runners_failed {
+        // TODO: Pretty-print (hierarchy w/ backtrace) errors in detail here.
+        // TODO: Probably remove the on-demand `insert_before` hack afterwards.
         Ok(Summary::SomeRunnersFailed)
     } else {
         Ok(Summary::Success)
