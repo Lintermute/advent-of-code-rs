@@ -108,6 +108,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "aoc-cli"
+version = "0.0.0"
+dependencies = [
+ "aoc",
+ "tokio",
+]
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

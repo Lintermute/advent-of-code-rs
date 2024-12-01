@@ -69,18 +69,21 @@ pub fn skip_preproc(y: Year, d: Day, tx: &mpsc::Sender<Event>) -> Result<()> {
 }
 
 #[doc(hidden)]
-pub fn preprocess<I>(
+pub fn preprocess<I, E>(
     y: Year,
     d: Day,
-    parser: fn(Input) -> Result<I>,
+    parser: fn(Input) -> Result<I, E>,
     input: Input,
     tx: &mpsc::Sender<Event>,
-) -> Result<Option<I>> {
+) -> Result<Option<I>>
+where
+    E: Into<Stashable>,
+{
     let start_time = Instant::now();
     send(started(y, d, Step::Preproc, start_time), tx)?;
 
     let parsed_input = match catch_unwind(|| parser(input)) {
-        Ok(result) => result,
+        Ok(result) => result.or_wrap(),
         Err(_panic) => Err(err!("PANIC")),
     };
 
@@ -99,17 +102,19 @@ pub fn preprocess<I>(
 }
 
 #[doc(hidden)]
-pub fn solve<A1, A2>(
+pub fn solve<A1, A2, E1, E2>(
     y: Year,
     d: Day,
-    p1: impl Fn() -> Result<A1> + Send + UnwindSafe,
-    p2: impl Fn() -> Result<A2> + Send + UnwindSafe,
+    p1: impl Fn() -> Result<A1, E1> + Send + UnwindSafe,
+    p2: impl Fn() -> Result<A2, E2> + Send + UnwindSafe,
     parts: Parts,
     tx: &mpsc::Sender<Event>,
 ) -> Result<()>
 where
     A1: PuzzleAnswer,
     A2: PuzzleAnswer,
+    E1: Into<Stashable>,
+    E2: Into<Stashable>,
 {
     let p1 = || solve_part(y, d, Part::Part1, p1, tx);
     let p2 = || solve_part(y, d, Part::Part2, p2, tx);
@@ -130,21 +135,22 @@ where
     errs.into()
 }
 
-fn solve_part<A>(
+fn solve_part<A, E>(
     y: Year,
     d: Day,
     p: Part,
-    f: impl Fn() -> Result<A> + UnwindSafe,
+    f: impl Fn() -> Result<A, E> + UnwindSafe,
     tx: &mpsc::Sender<Event>,
 ) -> Result<()>
 where
     A: PuzzleAnswer,
+    E: Into<Stashable>,
 {
     let time = Instant::now();
     send(started(y, d, p.into(), time), tx)?;
 
     let result = match catch_unwind(f) {
-        Ok(result) => result,
+        Ok(result) => result.or_wrap(),
         Err(_panic) => Err(err!("PANIC")),
     };
 

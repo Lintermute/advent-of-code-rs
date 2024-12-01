@@ -1,15 +1,19 @@
 #![forbid(unsafe_code)]
 
+pub mod ident;
+pub mod puzzles;
+pub mod runner;
+pub mod solver;
+
 mod cli;
 mod downloader;
 mod fs;
-mod ident;
 mod leaderboard;
 mod parser;
-mod puzzles;
-mod runner;
-mod solver;
 mod ui;
+
+pub use fs::Config;
+pub use ident::{D01, D02, D03, D15, P1, P2, Y21, Y23};
 
 use std::{
     io::Write,
@@ -21,8 +25,7 @@ use runner::Runner;
 use tokio::sync::mpsc;
 
 use downloader::Downloader;
-use fs::Config;
-use ident::{Filter, Id, D01, D02, D03, D15, P1, P2, Y21, Y23};
+use ident::{Filter, Id};
 use solver::{Event, Parts, Solver};
 use ui::{Summary, Terminated, Ui};
 
@@ -66,8 +69,7 @@ impl From<Result<Summary, Terminated>> for ExitStatus {
     }
 }
 
-#[tokio::main]
-async fn main() -> ExitStatus {
+pub async fn main() -> ExitStatus {
     let result = try_main().await;
     let status = ExitStatus::from(result);
 
