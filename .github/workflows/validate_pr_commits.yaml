@@ -135,6 +135,10 @@ jobs:
         ref: ${{ github.head_ref }}
         fetch-depth: 0
 
+    # FIXME: Remove nightly once tarpaulin can run doctests on stable again
+    - name: Install nightly Rust toolchain
+      uses: dtolnay/rust-toolchain@nightly
+
     - name: Install stable Rust toolchain
       uses: dtolnay/rust-toolchain@stable
 

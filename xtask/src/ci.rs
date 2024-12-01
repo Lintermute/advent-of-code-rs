@@ -602,7 +602,10 @@ fn tarpaulin(args: &CoverageArgs) -> CommandLine {
         "--locked",
         "--workspace",
         "--all-features",
-        "--all-targets",
+        "--lib",
+        "--doc",
+        "--bins",
+        "--tests",
         "--no-fail-fast",
     ];
 
@@ -749,7 +752,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-dev",
             ],
         ]; "`tarpaulin` task")]
@@ -852,7 +857,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-dev",
                 "--", "--include-ignored",
             ],
@@ -953,7 +960,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-dev",
             ],
 
@@ -991,7 +1000,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-release",
                 "--release",
             ],
@@ -1093,7 +1104,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-dev",
             ],
             &[
@@ -1106,7 +1119,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-release",
                 "--release",
             ],
@@ -1123,7 +1138,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-dev",
                 "--", "--include-ignored",
             ],
@@ -1137,7 +1154,9 @@ mod tests {
             &[
                 "cargo", "tarpaulin",
                 "--locked", "--workspace",
-                "--all-features", "--all-targets", "--no-fail-fast",
+                "--all-features",
+                "--lib", "--doc", "--bins", "--tests",
+                "--no-fail-fast",
                 "--output-dir", "tarpaulin-report-release",
                 "--release", "--", "--include-ignored",
             ],
