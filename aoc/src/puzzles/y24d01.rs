@@ -28,11 +28,7 @@ pub fn part1((left, right): &(Vec<u64>, Vec<u64>)) -> Result<u64> {
 
     let sum = left
         .zip(right)
-        .map(|(l, r)| {
-            let min = std::cmp::min(l, r);
-            let max = std::cmp::max(l, r);
-            max - min
-        })
+        .map(|(l, r)| l.abs_diff(*r))
         .sum();
     Ok(sum)
 }
