@@ -16,36 +16,40 @@ use crate::ident::{Day, Part, Year};
 /// will then need to parse the input data by itself:
 ///
 /// ```
-/// fn y21d01p1(_input: &str) -> Result<u8> {
+/// use aoc::{solver, D01, Y21};
+///
+/// fn y21d01p1(_input: &str) -> Result<u8, String> {
 ///     // Read personal puzzle input from file.
 ///     Ok(42)
 /// }
 ///
-/// fn y21d01p2(_input: &str) -> Result<u8> {
+/// fn y21d01p2(_input: &str) -> Result<u8, String> {
 ///     // Read personal puzzle input from file here, too.
 ///     Ok(42 + 42)
 /// }
 ///
-/// let s: Solver = solver!(Y21, D01, y21d01p1, y21d01p2);
+/// let s = solver!(Y21, D01, y21d01p1, y21d01p2);
 /// ```
 ///
 /// For some puzzles, it makes sense to parse the input only once:
 ///
 /// ```
-/// fn y21d01_preproc(_input: &str) -> Result<u8> {
+/// use aoc::{solver, D01, Y21};
+///
+/// fn y21d01_preproc(_input: String) -> Result<u8, String> {
 ///     // Read personal puzzle input from file.
 ///     Ok(42)
 /// }
 ///
-/// fn y21d01p1(input: &u8) -> Result<u8> {
+/// fn y21d01p1(input: &u8) -> Result<u8, String> {
 ///     Ok(*input)
 /// }
 ///
-/// fn y21d01p2(input: &u8) -> Result<u8> {
+/// fn y21d01p2(input: &u8) -> Result<u8, String> {
 ///     Ok(*input + *input)
 /// }
 ///
-/// let s: Solver = solver!(Y21, D01, y21d01p1, y21d01p2, y21d01_preproc);
+/// let s = solver!(Y21, D01, y21d01p1, y21d01p2, y21d01_preproc);
 /// ```
 // Implementation Notes:
 //

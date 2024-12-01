@@ -22,7 +22,7 @@ reqwest = "0.12.5"
 take_mut = "0.2.2"
 temp-env = "0.3.6"
 thiserror = "2.0.0"
-tokio = { version = "1.30.0", features = ["macros", "rt-multi-thread", "sync"] }
+tokio = { workspace = true }
 tokio-stream = "0.1.14"
 
 [dev-dependencies]

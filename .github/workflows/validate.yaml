@@ -150,6 +150,10 @@ jobs:
       with:
         ref: ${{ matrix.branch }}
 
+    # FIXME: Remove nightly once tarpaulin can run doctests on stable again
+    - name: Install nightly Rust toolchain
+      uses: dtolnay/rust-toolchain@nightly
+
     - name: Install stable Rust toolchain
       uses: dtolnay/rust-toolchain@stable
 

@@ -66,7 +66,7 @@ impl FromStr for FilterTerm {
     ///
     /// ```
     /// # use std::str::FromStr;
-    /// # use util::ident::FilterTerm;
+    /// # use aoc::ident::FilterTerm;
     ///
     /// assert!(FilterTerm::from_str("y21d02p2").is_ok());
     /// assert!(FilterTerm::from_str("y21d02").is_ok());
@@ -81,7 +81,7 @@ impl FromStr for FilterTerm {
     /// to get an all-wildcard filter.
     ///
     /// ```
-    /// # use util::ident::FilterTerm;
+    /// # use aoc::ident::FilterTerm;
     ///
     /// let a = "".parse::<FilterTerm>(); // Returns `Err`
     /// let b = "*".parse::<FilterTerm>().unwrap();
