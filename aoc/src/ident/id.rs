@@ -227,7 +227,7 @@ mod tests {
     }
 
     #[test_case("y19")]
-    #[test_case("y24")]
+    #[test_case("y25")]
     #[test_case("y2019")]
     #[test_case("y21d01")]
     #[test_case("y-1")]
