@@ -39,8 +39,7 @@ macro_rules! bench {
                 let input = read_input_or_panic($year, $day);
                 c.bench_function(&id, |b| {
                     b.iter(|| {
-                        let input = input.clone();
-                        $parser(criterion::black_box(input))
+                        $parser(criterion::black_box(&input))
                     })
                 });
             }
@@ -48,7 +47,7 @@ macro_rules! bench {
             fn [< $year:lower $day:lower p1>](c: &mut Criterion) {
                 let id = stringify!([< $year:lower $day:lower p1>]);
                 let input = read_input_or_panic($year, $day);
-                let data = $parser(input).unwrap();
+                let data = $parser(&input).unwrap();
                 c.bench_function(&id, |b| {
                     b.iter(|| $solver1(criterion::black_box(&data)))
                 });
@@ -57,7 +56,7 @@ macro_rules! bench {
             fn [< $year:lower $day:lower p2>](c: &mut Criterion) {
                 let id = stringify!([< $year:lower $day:lower p2>]);
                 let input = read_input_or_panic($year, $day);
-                let data = $parser(input).unwrap();
+                let data = $parser(&input).unwrap();
                 c.bench_function(&id, |b| {
                     b.iter(|| $solver2(criterion::black_box(&data)))
                 });

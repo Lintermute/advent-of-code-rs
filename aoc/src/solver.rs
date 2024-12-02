@@ -36,7 +36,7 @@ use crate::ident::{Day, Part, Year};
 /// ```
 /// use aoc::{solver, D01, Y21};
 ///
-/// fn y21d01_preproc(_input: String) -> Result<u8, String> {
+/// fn y21d01_preproc(_input: &str) -> Result<u8, String> {
 ///     // Read personal puzzle input from file.
 ///     Ok(42)
 /// }
@@ -153,8 +153,6 @@ pub enum Parts {
     Both,
 }
 
-pub type Input = String;
-
 #[derive(Debug)]
 pub struct Event {
     pub year:  Year,
@@ -188,7 +186,7 @@ pub trait PuzzleAnswer: Display + Debug + Send + Sync + 'static {}
 impl<T> PuzzleAnswer for T where T: Display + Debug + Send + Sync + 'static {}
 
 #[doc(hidden)]
-pub type RunnerFn = fn(Parts, Input, mpsc::Sender<Event>) -> Result<()>;
+pub type RunnerFn = fn(Parts, &str, mpsc::Sender<Event>) -> Result<()>;
 
 impl From<Part> for Step {
     fn from(value: Part) -> Self {
@@ -226,7 +224,7 @@ impl Solver {
     pub fn solve(
         &self,
         parts: Parts,
-        input: Input,
+        input: &str,
         tx: mpsc::Sender<Event>,
     ) -> Result<()> {
         let f = self.runner;

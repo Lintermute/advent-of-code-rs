@@ -5,7 +5,7 @@ use lazy_errors::Result;
 
 use crate::parser;
 
-pub fn parse(input: String) -> Result<Vec<usize>> {
+pub fn parse(input: &str) -> Result<Vec<usize>> {
     parser::parse_each(input.lines()).collect()
 }
 

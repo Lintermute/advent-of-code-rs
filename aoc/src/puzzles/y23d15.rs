@@ -59,7 +59,7 @@ impl FromStr for Step {
     }
 }
 
-pub fn parse(input: String) -> Result<Vec<String>> {
+pub fn parse(input: &str) -> Result<Vec<String>> {
     Ok(input
         .trim()
         .split(',')
@@ -135,7 +135,7 @@ mod tests {
         let config = Config::from_env_or_defaults()?;
         let input = config.read_example_puzzle_input(Y23, D15, "1")?;
 
-        let p0 = parse(input)?;
+        let p0 = parse(&input)?;
         let p1 = part1(&p0)?;
         let p2 = part2(&p0)?;
 

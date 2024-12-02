@@ -1,6 +1,6 @@
 use lazy_errors::{prelude::*, Result};
 
-pub fn parse(input: String) -> Result<(Vec<u64>, Vec<u64>)> {
+pub fn parse(input: &str) -> Result<(Vec<u64>, Vec<u64>)> {
     use core::str::FromStr;
 
     let lists: Vec<(u64, u64)> = input
@@ -79,7 +79,7 @@ mod tests {
         let config = Config::from_env_or_defaults()?;
         let input = config.read_example_puzzle_input(Y24, D01, "1")?;
 
-        let p0 = super::parse(input)?;
+        let p0 = super::parse(&input)?;
         let p1 = super::part1(&p0)?;
         let p2 = super::part2(&p0)?;
 

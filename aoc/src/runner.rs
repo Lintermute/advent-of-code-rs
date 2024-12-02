@@ -11,10 +11,10 @@ use tokio::{
 
 use crate::{
     ident::{Day, Id, Part, Year},
-    solver::{
-        num_threads, Event, Input, Parts, PuzzleAnswer, Solver, State, Step,
-    },
+    solver::{num_threads, Event, Parts, PuzzleAnswer, Solver, State, Step},
 };
+
+pub type Input = String;
 
 pub struct Runner {
     tx: mpsc::Sender<(Solver, Parts, Input)>,
@@ -39,7 +39,9 @@ async fn run_actor(
 ) {
     while let Some((solver, parts, input)) = rx.recv().await {
         let tx = tx.clone();
-        task::spawn(await_rayon_thread(move || solver.solve(parts, input, tx)));
+        task::spawn(await_rayon_thread(move || {
+            solver.solve(parts, &input, tx)
+        }));
     }
 }
 
@@ -72,8 +74,8 @@ pub fn skip_preproc(y: Year, d: Day, tx: &mpsc::Sender<Event>) -> Result<()> {
 pub fn preprocess<I, E>(
     y: Year,
     d: Day,
-    parser: fn(Input) -> Result<I, E>,
-    input: Input,
+    parser: fn(&str) -> Result<I, E>,
+    input: &str,
     tx: &mpsc::Sender<Event>,
 ) -> Result<Option<I>>
 where
