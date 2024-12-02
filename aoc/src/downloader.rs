@@ -6,7 +6,8 @@ use tokio::{sync::mpsc, task};
 use crate::{
     fs::Config,
     ident::{Day, Year},
-    solver::{Event, Input, Parts, Solver, State, Step},
+    runner::Input,
+    solver::{Event, Parts, Solver, State, Step},
 };
 
 pub struct Downloader;

@@ -212,15 +212,15 @@ mod tests {
 
     use super::*;
 
-    fn mock_prep_ok(_input: String) -> Result<String> {
+    fn mock_prep_ok(_input: &str) -> Result<String> {
         Ok(String::from("MOCK_PARSED_INPUT"))
     }
 
-    fn mock_prep_err(_input: String) -> Result<String> {
+    fn mock_prep_err(_input: &str) -> Result<String> {
         Err(err!("Parser failed, so both solvers cannot run"))
     }
 
-    fn mock_prep_panic(_input: String) -> Result<String> {
+    fn mock_prep_panic(_input: &str) -> Result<String> {
         panic!("Mock panic")
     }
 

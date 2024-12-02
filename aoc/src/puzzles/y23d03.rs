@@ -14,9 +14,9 @@ pub struct Data {
     neighbors: Vec<(SymbolId, Vec<NumberId>)>,
 }
 
-pub fn parse(input: String) -> Result<Data> {
+pub fn parse(input: &str) -> Result<Data> {
     let (symbols, numbers) =
-        rayon::join(|| parse_symbols(&input), || parse_numbers(&input));
+        rayon::join(|| parse_symbols(input), || parse_numbers(input));
 
     let symbols = symbols?;
     let numbers = numbers?;
@@ -95,7 +95,7 @@ mod tests {
         let config = Config::from_env_or_defaults()?;
         let input = config.read_example_puzzle_input(Y23, D03, "1")?;
 
-        let p0 = parse(input)?;
+        let p0 = parse(&input)?;
         let p1 = part1(&p0)?;
         let p2 = part2(&p0)?;
 

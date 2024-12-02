@@ -2,7 +2,7 @@ use lazy_errors::{prelude::*, Result};
 
 use crate::parser;
 
-pub fn parse(input: String) -> Result<Vec<String>> {
+pub fn parse(input: &str) -> Result<Vec<String>> {
     parser::parse_each(input.lines()).collect()
 }
 
