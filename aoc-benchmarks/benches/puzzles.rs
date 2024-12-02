@@ -82,5 +82,6 @@ fn read_input_or_panic(y: Year, d: Day) -> String {
 bench!(Y21, D02, y21d02::part1, y21d02::part2);
 bench!(Y23, D03, y23d03::part1, y23d03::part2, y23d03::parse);
 bench!(Y24, D01, y24d01::part1, y24d01::part2, y24d01::parse);
+bench!(Y24, D02, y24d02::part1, y24d02::part2, y24d02::parse);
 
-criterion_main!(y21d02, y23d03, y24d01);
+criterion_main!(y21d02, y23d03, y24d01, y24d02);
