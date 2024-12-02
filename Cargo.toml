@@ -1,5 +1,5 @@
 [workspace]
-members = [ "aoc", "aoc-benchmarks", "aoc-cli", "xtask" ]
+members = [ "aoc", "aoc-benchmarks", "aoc-cli", "api-2024", "xtask" ]
 default-members = [ "aoc-cli" ]
 resolver = "2"
 
