@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use lazy_errors::{prelude::*, Result};
 
 pub fn parse(input: String) -> Result<(Vec<u64>, Vec<u64>)> {
@@ -10,11 +9,17 @@ pub fn parse(input: String) -> Result<(Vec<u64>, Vec<u64>)> {
             let tokens: Vec<u64> = line
                 .split_whitespace()
                 .map(u64::from_str)
-                .try_collect()
-                .or_wrap_with(|| "TODO")?;
-            let [left, right]: [_; 2] = tokens
-                .try_into()
-                .map_err(|_| err!("TODO"))?;
+                .collect::<Result<_, _>>()
+                .or_wrap_with(|| format!("Failed to parse line '{line}'"))?;
+
+            let [left, right]: [_; 2] =
+                tokens
+                    .try_into()
+                    .map_err(|tokens: Vec<_>| {
+                        let n = tokens.len();
+                        err!("Expected exactly two numbers, got {n}")
+                    })?;
+
             Ok((left, right))
         })
         .collect::<Result<_>>()?;
@@ -23,24 +28,39 @@ pub fn parse(input: String) -> Result<(Vec<u64>, Vec<u64>)> {
 }
 
 pub fn part1((left, right): &(Vec<u64>, Vec<u64>)) -> Result<u64> {
-    let left = left.iter().sorted_unstable();
-    let right = right.iter().sorted_unstable();
+    let mut left = left.clone();
+    let mut right = right.clone();
+
+    left.sort_unstable();
+    right.sort_unstable();
 
     let sum = left
+        .into_iter()
         .zip(right)
-        .map(|(l, r)| l.abs_diff(*r))
+        .map(|(l, r)| l.abs_diff(r))
         .sum();
+
     Ok(sum)
 }
 
 pub fn part2((left, right): &(Vec<u64>, Vec<u64>)) -> Result<u64> {
-    let sum = left
-        .iter()
-        .map(|l| {
-            let count = right.iter().filter(|&e| e == l).count();
-            l * u64::try_from(count).unwrap()
+    use itertools::Itertools;
+    let l = left.iter().counts();
+    let r = right.iter().counts();
+
+    let sum = l
+        .into_iter()
+        .map(|(value, count1)| -> Result<u64> {
+            if let Some(&count2) = r.get(value) {
+                let c1 = u64::try_from(count1).or_wrap()?;
+                let c2 = u64::try_from(count2).or_wrap()?;
+                Ok(value * c1 * c2)
+            } else {
+                Ok(0)
+            }
         })
-        .sum();
+        .sum::<Result<_>>()?;
+
     Ok(sum)
 }
 
@@ -59,9 +79,9 @@ mod tests {
         let config = Config::from_env_or_defaults()?;
         let input = config.read_example_puzzle_input(Y24, D01, "1")?;
 
-        let p0 = parse(input)?;
-        let p1 = part1(&p0)?;
-        let p2 = part2(&p0)?;
+        let p0 = super::parse(input)?;
+        let p1 = super::part1(&p0)?;
+        let p2 = super::part2(&p0)?;
 
         assert_eq!(p1, 11);
         assert_eq!(p2, 31);
