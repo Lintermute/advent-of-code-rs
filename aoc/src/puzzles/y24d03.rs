@@ -1,50 +1,47 @@
-use lazy_errors::Result;
+use lazy_errors::{prelude::*, Result};
 
-pub enum Instruction {
-    Mul(u16, u16),
+pub enum Instr {
     Do,
     Dont,
+    Mul(u16, u16),
 }
-pub fn parse(input: &str) -> Result<Vec<Instruction>> {
-    use itertools::Itertools;
-    use lazy_regex::regex;
 
-    use crate::parser::{parse_substrs, regex_matches, Rect};
+pub fn parse(input: &str) -> Result<Vec<Instr>> {
     use core::str::FromStr;
 
-    let instrs = |line| {
-        regex_matches(
-            line,
-            regex!(r"(mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\))"),
-        )
-    };
-    parse_substrs(input.lines(), instrs)
-        .map_ok(|(_, y): (Rect, String)| y)
-        .map_ok(|x| {
-            if x == "do()" {
-                Instruction::Do
-            } else if x == "don't()" {
-                Instruction::Dont
-            } else {
-                let p = x.find(',').unwrap();
-                let n = x.len();
-                let l = &x[4..p];
-                let r = &x[p + 1..n - 1];
+    use lazy_regex::regex;
+    use regex::Regex;
 
-                // dbg!(l, r);
+    let instrs = Regex::new(r"do\(\)|don't\(\)|mul\(\d{1,3},\d{1,3}\)")
+        .or_wrap_with(|| "Failed to create regex")?
+        .find_iter(input)
+        .map(|m| match m.as_str() {
+            "do()" => Instr::Do,
+            "don't()" => Instr::Dont,
+            mul => {
+                let start = 4;
+                let end = mul.len() - 1;
+                let comma = mul.find(',').unwrap();
+
+                let l = &mul[start..comma];
+                let r = &mul[(comma + 1)..end];
+
                 let l = u16::from_str(l).unwrap();
                 let r = u16::from_str(r).unwrap();
-                Instruction::Mul(l, r)
+
+                Instr::Mul(l, r)
             }
         })
-        .collect()
+        .collect();
+
+    Ok(instrs)
 }
 
-pub fn part1(_data: &[Instruction]) -> Result<u64> {
-    let sum = _data
+pub fn part1(data: &[Instr]) -> Result<u64> {
+    let sum = data
         .iter()
         .map(|i| match i {
-            Instruction::Mul(l, r) => {
+            Instr::Mul(l, r) => {
                 let l = u64::from(*l);
                 let r = u64::from(*r);
                 l * r
@@ -56,18 +53,18 @@ pub fn part1(_data: &[Instruction]) -> Result<u64> {
     Ok(sum)
 }
 
-pub fn part2(_data: &[Instruction]) -> Result<u64> {
-    let (sum, _) = _data
+pub fn part2(data: &[Instr]) -> Result<u64> {
+    let (sum, _) = data
         .iter()
         .fold((0, true), |(sum, take), i| match i {
-            Instruction::Mul(l, r) if take => {
+            Instr::Do => (sum, true),
+            Instr::Dont => (sum, false),
+            Instr::Mul(l, r) if take => {
                 let l = u64::from(*l);
                 let r = u64::from(*r);
-                (sum + l * r, true)
+                (sum + (l * r), true)
             }
-            Instruction::Mul(..) => (sum, take),
-            Instruction::Do => (sum, true),
-            Instruction::Dont => (sum, false),
+            _ => (sum, take),
         });
 
     Ok(sum)
@@ -87,9 +84,6 @@ mod tests {
     fn example_1() -> Result<()> {
         let config = Config::from_env_or_defaults()?;
         let input = config.read_example_puzzle_input(Y24, D03, "1")?;
-        // let input = config
-        //     .read_personal_puzzle_input(Y24, D03)?
-        //     .unwrap();
 
         let p0 = super::parse(&input)?;
         let p1 = super::part1(&p0)?;
@@ -103,9 +97,6 @@ mod tests {
     fn example_2() -> Result<()> {
         let config = Config::from_env_or_defaults()?;
         let input = config.read_example_puzzle_input(Y24, D03, "2")?;
-        // let input = config
-        //     .read_personal_puzzle_input(Y24, D03)?
-        //     .unwrap();
 
         let p0 = super::parse(&input)?;
         let p2 = super::part2(&p0)?;
