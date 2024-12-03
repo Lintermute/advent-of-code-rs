@@ -38,6 +38,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y23, D03, y23d03::part1, y23d03::part2, y23d03::parse),
     solver!(Y23, D15, y23d15::part1, y23d15::part2, y23d15::parse),
     solver!(Y24, D01, y24d01::part1, y24d01::part2, y24d01::parse),
+    solver!(Y24, D02, y24d02::part1, y24d02::part2, y24d02::parse),
 ];
 
 #[derive(Debug)]
@@ -249,7 +250,10 @@ mod tests {
     #[test_case(&["y21d02"], &[(Y21, D02, Parts::Both)])]
     #[test_case(&["y21d02p1", "y21d02p2"], &[(Y21, D02, Parts::Both)])]
     #[test_case(&["y21d01p1", "y21d01p1"], &[(Y21, D01, Parts::First)])]
-    #[test_case(&["d02p2"], &[(Y21, D02, Parts::Second)])]
+    #[test_case(&["d02p2"], &[
+        (Y21, D02, Parts::Second),
+        (Y24, D02, Parts::Second),
+    ])]
     #[test_case(&[], &[
         (Y21, D01, Parts::Both),
         (Y21, D02, Parts::Both),
@@ -257,6 +261,7 @@ mod tests {
         (Y23, D03, Parts::Both),
         (Y23, D15, Parts::Both),
         (Y24, D01, Parts::Both),
+        (Y24, D02, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
         let filter = Filter::from(
@@ -770,6 +775,8 @@ mod tests {
     #[test_case("y23d15p2")]
     #[test_case("y24d01p1")]
     #[test_case("y24d01p2")]
+    #[test_case("y24d02p1")]
+    #[test_case("y24d02p2")]
     #[tokio::test]
     #[ignore] // Requires manually saving the personal puzzles answers before
     async fn solve_personal_inputs(filter: &str) -> Result<()> {
