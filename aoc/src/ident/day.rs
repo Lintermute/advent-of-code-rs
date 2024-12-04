@@ -5,9 +5,8 @@ use lazy_errors::{prelude::*, Result};
 pub const D01: Day = Day(1);
 pub const D02: Day = Day(2);
 pub const D03: Day = Day(3);
-
-#[cfg(test)]
 pub const D04: Day = Day(4);
+
 #[cfg(test)]
 pub const D05: Day = Day(5);
 #[cfg(test)]
