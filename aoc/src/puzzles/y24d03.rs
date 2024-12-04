@@ -1,4 +1,4 @@
-use lazy_errors::{prelude::*, Result};
+use lazy_errors::Result;
 
 pub enum Instr {
     Do,
@@ -10,10 +10,8 @@ pub fn parse(input: &str) -> Result<Vec<Instr>> {
     use core::str::FromStr;
 
     use lazy_regex::regex;
-    use regex::Regex;
 
-    let instrs = Regex::new(r"do\(\)|don't\(\)|mul\(\d{1,3},\d{1,3}\)")
-        .or_wrap_with(|| "Failed to create regex")?
+    let instrs = regex!(r"do\(\)|don't\(\)|mul\(\d{1,3},\d{1,3}\)")
         .find_iter(input)
         .map(|m| match m.as_str() {
             "do()" => Instr::Do,
