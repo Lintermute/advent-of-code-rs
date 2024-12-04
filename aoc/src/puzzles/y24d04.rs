@@ -62,8 +62,36 @@ pub fn part1(data: &[(Point, char)]) -> Result<u64> {
     Ok(sum)
 }
 
-pub fn part2(_data: &[(Point, char)]) -> Result<u64> {
-    Ok(0)
+pub fn part2(data: &[(Point, char)]) -> Result<u64> {
+    let sum = data
+        .iter()
+        .filter(|&&(_, ch)| ch == 'A')
+        .map(|(point, _)| {
+            let (y, x) = (point.y(), point.x());
+            let tlm = (Point::new(y - 1, x - 1), 'M');
+            let trm = (Point::new(y - 1, x + 1), 'M');
+            let blm = (Point::new(y + 1, x - 1), 'M');
+            let brm = (Point::new(y + 1, x + 1), 'M');
+            let tls = (Point::new(y - 1, x - 1), 'S');
+            let trs = (Point::new(y - 1, x + 1), 'S');
+            let bls = (Point::new(y + 1, x - 1), 'S');
+            let brs = (Point::new(y + 1, x + 1), 'S');
+
+            let first = data.contains(&tlm) && data.contains(&brs);
+            let first2 = data.contains(&tls) && data.contains(&brm);
+
+            let second = data.contains(&blm) && data.contains(&trs);
+            let second2 = data.contains(&bls) && data.contains(&trm);
+
+            if (first || first2) && (second || second2) {
+                1
+            } else {
+                0
+            }
+        })
+        .sum();
+
+    Ok(sum)
 }
 
 #[cfg(test)]
@@ -86,7 +114,7 @@ mod tests {
         let p2 = super::part2(&p0)?;
 
         assert_eq!(p1, 18);
-        assert_eq!(p2, 0);
+        assert_eq!(p2, 9);
         Ok(())
     }
 }
