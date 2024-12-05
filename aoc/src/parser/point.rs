@@ -37,6 +37,22 @@ impl TryFrom<Rect> for Point {
     }
 }
 
+impl std::ops::Add<Vector> for Point {
+    type Output = Self;
+
+    fn add(self, rhs: Vector) -> Self::Output {
+        Self(self.0 + rhs)
+    }
+}
+
+impl std::ops::Sub<Vector> for Point {
+    type Output = Self;
+
+    fn sub(self, rhs: Vector) -> Self::Output {
+        Self(self.0 - rhs)
+    }
+}
+
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(&self.0, f)
