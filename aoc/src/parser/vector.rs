@@ -47,6 +47,17 @@ impl Vector {
     }
 }
 
+impl std::ops::Neg for Vector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            y: -self.y,
+            x: -self.x,
+        }
+    }
+}
+
 impl Add for Vector {
     type Output = Self;
 
