@@ -3,7 +3,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use aoc::{
     ident::{Day, Year},
     puzzles::*,
-    Config, D01, D02, D03, Y21, Y23, Y24,
+    Config, D01, D02, D03, D04, Y21, Y23, Y24,
 };
 
 macro_rules! bench {
@@ -84,4 +84,5 @@ bench!(Y23, D03, y23d03::part1, y23d03::part2, y23d03::parse);
 bench!(Y24, D01, y24d01::part1, y24d01::part2, y24d01::parse);
 bench!(Y24, D02, y24d02::part1, y24d02::part2, y24d02::parse);
 bench!(Y24, D03, y24d03::part1, y24d03::part2, y24d03::parse);
-criterion_main!(y21d02, y23d03, y24d01, y24d02, y24d03);
+bench!(Y24, D04, y24d04::part1, y24d04::part2, y24d04::parse);
+criterion_main!(y21d02, y23d03, y24d01, y24d02, y24d03, y24d04);
