@@ -1,81 +1,59 @@
+use std::{collections::HashMap, iter};
+
 use lazy_errors::Result;
 
-use crate::parser::{self, Point};
+use crate::parser::{self, Point, Vector};
 
-pub fn parse(input: &str) -> Result<Vec<(Point, char)>> {
-    use itertools::Itertools;
-
-    let pattern = |line| str::match_indices(line, &['X', 'M', 'A', 'S']);
-    let matcher = |line| parser::pattern_matches(line, pattern);
-    let parsed: Vec<(Point, char)> =
-        parser::parse_substrs(input.lines(), matcher).try_collect()?;
-
-    Ok(parsed)
+pub fn parse(input: &str) -> Result<HashMap<Point, char>> {
+    parser::parse_substrs(input.lines(), parser::chars).collect()
 }
 
-pub fn part1(data: &[(Point, char)]) -> Result<u64> {
+pub fn part1(data: &HashMap<Point, char>) -> Result<u32> {
     let sum = data
         .iter()
-        .filter(|&&(_, ch)| ch == 'X')
-        .map(|(point, _)| {
-            let mut count = 0;
-            let dirs: &[(isize, isize)] = &[
-                (0, 1),
-                (1, 0),
-                (1, 1),
-                (0, -1),
-                (-1, 0),
-                (1, -1),
-                (-1, -1),
-                (-1, 1),
-            ];
-            for d in dirs {
-                let mut p = *point;
-                let mut found = true;
-                for next in "MAS".chars() {
-                    let y = p.y() + d.0;
-                    let x = p.x() + d.1;
-                    p = Point::new(y, x);
-                    let ch = (p, next);
-                    if !data.contains(&ch) {
-                        found = false;
-                        break;
-                    }
-                }
+        .filter(|(_, &char)| char == 'X')
+        .map(|(&p, _)| {
+            let count = Vector::DIRECTIONS
+                .iter()
+                .filter(|&&d| {
+                    let pos = iter::successors(Some(p + d), |&p| Some(p + d));
+                    iter::zip(pos, "MAS".chars())
+                        .all(|(p, char)| data.get(&p) == Some(&char))
+                })
+                .count();
 
-                if found {
-                    count += 1
-                }
-            }
-            count
+            assert!(
+                Vector::DIRECTIONS.len() <= usize::try_from(u32::MAX).unwrap()
+            );
+            count as u32
         })
         .sum();
 
     Ok(sum)
 }
 
-pub fn part2(data: &[(Point, char)]) -> Result<u64> {
+pub fn part2(data: &HashMap<Point, char>) -> Result<u32> {
+    let tl = Vector::new(-1, -1);
+    let tr = Vector::new(-1, 1);
+    let bl = Vector::new(1, -1);
+    let br = Vector::new(1, 1);
+
     let sum = data
         .iter()
-        .filter(|&&(_, ch)| ch == 'A')
-        .map(|(point, _)| {
-            let (y, x) = (point.y(), point.x());
-            let tlm = (Point::new(y - 1, x - 1), 'M');
-            let trm = (Point::new(y - 1, x + 1), 'M');
-            let blm = (Point::new(y + 1, x - 1), 'M');
-            let brm = (Point::new(y + 1, x + 1), 'M');
-            let tls = (Point::new(y - 1, x - 1), 'S');
-            let trs = (Point::new(y - 1, x + 1), 'S');
-            let bls = (Point::new(y + 1, x - 1), 'S');
-            let brs = (Point::new(y + 1, x + 1), 'S');
+        .filter(|(_, &char)| char == 'A')
+        .map(|(&p, _)| {
+            let tl = data.get(&(p + tl));
+            let tr = data.get(&(p + tr));
+            let bl = data.get(&(p + bl));
+            let br = data.get(&(p + br));
 
-            let first = data.contains(&tlm) && data.contains(&brs);
-            let first2 = data.contains(&tls) && data.contains(&brm);
+            let a1 = matches!(tl, Some('M')) && matches!(br, Some('S'));
+            let a2 = matches!(tl, Some('S')) && matches!(br, Some('M'));
 
-            let second = data.contains(&blm) && data.contains(&trs);
-            let second2 = data.contains(&bls) && data.contains(&trm);
+            let b1 = matches!(bl, Some('M')) && matches!(tr, Some('S'));
+            let b2 = matches!(bl, Some('S')) && matches!(tr, Some('M'));
 
-            if (first || first2) && (second || second2) {
+            if (a1 || a2) && (b1 || b2) {
                 1
             } else {
                 0

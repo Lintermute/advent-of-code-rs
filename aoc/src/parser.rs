@@ -80,6 +80,11 @@ where
         })
 }
 
+pub fn chars(input: &str) -> impl Iterator<Item = (usize, usize)> {
+    let n = input.len();
+    (0..n).map(|i| (i, 1))
+}
+
 // TODO: Use `Pattern` instead of `M` when feature `pattern` (#27721) is stable.
 #[allow(dead_code)]
 pub fn pattern_matches<'a, M, I>(
