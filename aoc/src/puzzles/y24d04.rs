@@ -33,16 +33,8 @@ pub fn part1(data: &[(Point, char)]) -> Result<u64> {
                 let mut p = *point;
                 let mut found = true;
                 for next in "MAS".chars() {
-                    let y = isize::try_from(p.y()).unwrap() + d.0;
-                    let x = isize::try_from(p.x()).unwrap() + d.1;
-                    let Ok(y) = usize::try_from(y) else {
-                        found = false;
-                        break;
-                    };
-                    let Ok(x) = usize::try_from(x) else {
-                        found = false;
-                        break;
-                    };
+                    let y = p.y() + d.0;
+                    let x = p.x() + d.1;
                     p = Point::new(y, x);
                     let ch = (p, next);
                     if !data.contains(&ch) {
