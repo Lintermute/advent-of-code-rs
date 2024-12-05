@@ -49,11 +49,19 @@ pub fn part1(data: &Instr) -> Result<u64> {
     Ok(sum)
 }
 
-pub fn part2(_data: &Instr) -> Result<u64> {
-    Ok(0)
+pub fn part2(data: &Instr) -> Result<u64> {
+    let sum = data
+        .updates
+        .iter()
+        .filter(|pages| !is_correct(pages, &data.map))
+        .map(|pages| sort(pages, &data.map))
+        .map(|pages| pages[pages.len() / 2])
+        .map(u64::from)
+        .sum();
+    Ok(sum)
 }
 
-pub fn is_correct(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> bool {
+fn is_correct(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> bool {
     pages
         .iter()
         .enumerate()
@@ -69,6 +77,33 @@ pub fn is_correct(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> bool {
                 }
             })
         })
+}
+
+fn sort(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> Vec<u8> {
+    let mut pages = pages.to_vec();
+    loop {
+        let mut swapped = false;
+        for i in 0..pages.len() {
+            let page = pages[i];
+            let Some(after) = rules.get(&page) else {
+                continue;
+            };
+            if let Some(j) = after
+                .iter()
+                .filter_map(|p| pages.iter().position(|x| *x == *p))
+                .min()
+            {
+                if j < i {
+                    pages.swap(i, j);
+                    swapped = true;
+                }
+            }
+        }
+        if !swapped {
+            break;
+        }
+    }
+    pages
 }
 
 #[cfg(test)]
@@ -91,7 +126,7 @@ mod tests {
         let p2 = super::part2(&p0)?;
 
         assert_eq!(p1, 143);
-        assert_eq!(p2, 0);
+        assert_eq!(p2, 123);
         Ok(())
     }
 }
