@@ -97,12 +97,12 @@ mod tests {
     #[test_case(0, 5, 3, 5, 2, 4, false)]
     #[test_case(6, 2, 3, 5, 6, 6, true)]
     fn contains(
-        ry: usize,
-        rx: usize,
-        rdy: usize,
-        rdx: usize,
-        px: usize,
-        py: usize,
+        ry: isize,
+        rx: isize,
+        rdy: isize,
+        rdx: isize,
+        px: isize,
+        py: isize,
         expectation: bool,
     ) {
         let rect = Rect::new(Point::new(ry, rx), Vector::new(rdy, rdx));
@@ -114,14 +114,14 @@ mod tests {
     #[test_case(1, 1, 1, 1, 0, 0, 3, 3)]
     #[allow(clippy::too_many_arguments)]
     fn grow(
-        y: usize,
-        x: usize,
-        dy: usize,
-        dx: usize,
-        grown_y: usize,
-        grown_x: usize,
-        grown_dy: usize,
-        grown_dx: usize,
+        y: isize,
+        x: isize,
+        dy: isize,
+        dx: isize,
+        grown_y: isize,
+        grown_x: isize,
+        grown_dy: isize,
+        grown_dx: isize,
     ) {
         let input = Rect::new(Point::new(y, x), Vector::new(dy, dx));
         let output = Rect::new(

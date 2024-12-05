@@ -13,7 +13,7 @@ mod parser;
 mod ui;
 
 pub use fs::Config;
-pub use ident::{D01, D02, D03, D15, P1, P2, Y21, Y23, Y24};
+pub use ident::{D01, D02, D03, D04, D15, P1, P2, Y21, Y23, Y24};
 
 use std::{
     io::Write,
@@ -40,6 +40,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y24, D01, y24d01::part1, y24d01::part2, y24d01::parse),
     solver!(Y24, D02, y24d02::part1, y24d02::part2, y24d02::parse),
     solver!(Y24, D03, y24d03::part1, y24d03::part2, y24d03::parse),
+    solver!(Y24, D04, y24d04::part1, y24d04::part2, y24d04::parse),
 ];
 
 #[derive(Debug)]
@@ -264,6 +265,7 @@ mod tests {
         (Y24, D01, Parts::Both),
         (Y24, D02, Parts::Both),
         (Y24, D03, Parts::Both),
+        (Y24, D04, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
         let filter = Filter::from(
@@ -781,6 +783,8 @@ mod tests {
     #[test_case("y24d02p2")]
     #[test_case("y24d03p1")]
     #[test_case("y24d03p2")]
+    #[test_case("y24d04p1")]
+    #[test_case("y24d04p2")]
     #[tokio::test]
     #[ignore] // Requires manually saving the personal puzzles answers before
     async fn solve_personal_inputs(filter: &str) -> Result<()> {

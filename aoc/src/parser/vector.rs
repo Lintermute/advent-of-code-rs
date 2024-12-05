@@ -4,23 +4,57 @@ use std::{
     ops::{Add, Sub},
 };
 
+use lazy_errors::{prelude::*, Result};
+
 #[derive(Copy, Debug, Clone, Default, PartialEq, Hash, Eq)]
 pub struct Vector {
-    y: usize,
-    x: usize,
+    y: isize,
+    x: isize,
 }
 
 impl Vector {
-    pub const fn new(y: usize, x: usize) -> Self {
+    pub const DIRECTIONS: [Vector; 8] = [
+        Vector::new(0, 1),
+        Vector::new(1, 0),
+        Vector::new(1, 1),
+        Vector::new(0, -1),
+        Vector::new(-1, 0),
+        Vector::new(1, -1),
+        Vector::new(-1, -1),
+        Vector::new(-1, 1),
+    ];
+    pub const E_X: Vector = Vector::new(0, 1);
+    pub const E_Y: Vector = Vector::new(1, 0);
+
+    pub const fn new(y: isize, x: isize) -> Self {
         Self { y, x }
     }
 
-    pub fn y(&self) -> usize {
+    pub fn from_unsigned(y: usize, x: usize) -> Result<Self> {
+        let y =
+            isize::try_from(y).or_wrap_with(|| format!("Overflow: y={y}"))?;
+        let x =
+            isize::try_from(x).or_wrap_with(|| format!("Overflow: x={x}"))?;
+        Ok(Self::new(y, x))
+    }
+
+    pub fn y(&self) -> isize {
         self.y
     }
 
-    pub fn x(&self) -> usize {
+    pub fn x(&self) -> isize {
         self.x
+    }
+}
+
+impl std::ops::Neg for Vector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            y: -self.y,
+            x: -self.x,
+        }
     }
 }
 
@@ -95,7 +129,7 @@ mod tests {
     #[test_case(2, 0, None)]
     #[test_case(2, 1, Some(Ordering::Greater))]
     #[test_case(2, 2, Some(Ordering::Greater))]
-    fn partial_cmp(y: usize, x: usize, expectation: Option<Ordering>) {
+    fn partial_cmp(y: isize, x: isize, expectation: Option<Ordering>) {
         let p_l = Vector::new(y, x);
         let p_r = Vector::new(1, 1);
         assert_eq!(p_l.partial_cmp(&p_r), expectation);

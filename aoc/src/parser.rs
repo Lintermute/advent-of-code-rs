@@ -80,6 +80,11 @@ where
         })
 }
 
+pub fn chars(input: &str) -> impl Iterator<Item = (usize, usize)> {
+    let n = input.len();
+    (0..n).map(|i| (i, 1))
+}
+
 // TODO: Use `Pattern` instead of `M` when feature `pattern` (#27721) is stable.
 #[allow(dead_code)]
 pub fn pattern_matches<'a, M, I>(
@@ -138,8 +143,8 @@ where
     T: FromStr<Err = E>,
     E: Into<Stashable>,
 {
-    let p = Point::new(y + 1, x + 1); // Both row 0 and column 0 are sentinels
-    let v = Vector::new(1, dx);
+    let p = Point::from_unsigned(y, x)?;
+    let v = Vector::from_unsigned(1, dx)?;
     let r = Rect::new(p, v);
 
     let msg = || format!("Failed to parse {r} in '{line}'");
@@ -254,11 +259,11 @@ mod tests {
             super::parse_substrs(input.lines(), matcher).try_collect()?;
 
         assert_eq!(parsed, vec![
-            (Point::new(2, 1), 4),
-            (Point::new(3, 1), 4),
-            (Point::new(3, 2), 2),
-            (Point::new(4, 4), 4),
-            (Point::new(4, 8), 2),
+            (Point::new(1, 0), 4),
+            (Point::new(2, 0), 4),
+            (Point::new(2, 1), 2),
+            (Point::new(3, 3), 4),
+            (Point::new(3, 7), 2),
         ]);
 
         Ok(())
@@ -321,15 +326,15 @@ mod tests {
         Ok(())
     }
 
-    #[test_case(0, 0, 1, "42", Point::new(1, 1), 4)]
-    #[test_case(0, 1, 1, "42", Point::new(1, 2), 2)]
-    #[test_case(1337, 3, 1, "foo9bar", Point::new(1338, 4), 9)]
+    #[test_case(0, 0, 1, "42", Point::new(0, 0), 4)]
+    #[test_case(0, 1, 1, "42", Point::new(0, 1), 2)]
+    #[test_case(1337, 3, 1, "foo9bar", Point::new(1337, 3), 9)]
     #[test_case(
         0,
         0,
         1,
         "42",
-        Rect::new(Point::new(1, 1), Vector::new(1, 1)),
+        Rect::new(Point::new(0, 0), Vector::new(1, 1)),
         4
     )]
     #[test_case(
@@ -337,7 +342,7 @@ mod tests {
         1,
         1,
         "42",
-        Rect::new(Point::new(1, 2), Vector::new(1, 1)),
+        Rect::new(Point::new(0, 1), Vector::new(1, 1)),
         2
     )]
     #[test_case(
@@ -345,7 +350,7 @@ mod tests {
         0,
         2,
         "42",
-        Rect::new(Point::new(1, 1), Vector::new(1, 2)),
+        Rect::new(Point::new(0, 0), Vector::new(1, 2)),
         42
     )]
     #[test_case(
@@ -353,7 +358,7 @@ mod tests {
         3,
         2,
         "foo42bar",
-        Rect::new(Point::new(1338, 4), Vector::new(1, 2)),
+        Rect::new(Point::new(1337, 3), Vector::new(1, 2)),
         42
     )]
     fn parse_substr<S>(
