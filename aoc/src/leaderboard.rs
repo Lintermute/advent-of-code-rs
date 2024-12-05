@@ -86,7 +86,7 @@ mod tests {
     use indoc::indoc;
     use lazy_errors::Result;
 
-    use crate::ident::{Filter, Y21};
+    use crate::ident::{year::Y21, Filter};
 
     use super::*;
 

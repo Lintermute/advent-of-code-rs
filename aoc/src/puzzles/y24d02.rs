@@ -64,10 +64,7 @@ fn is_fixable_up_to(levels: &[i8], i: usize) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D02, Y24},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 

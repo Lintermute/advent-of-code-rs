@@ -641,7 +641,7 @@ mod tests {
     #[test]
     #[cfg_attr(miri, ignore)] // Because of `RepoDir`/`create_config_for`
     fn personal_puzzle_input() -> Result<()> {
-        use crate::ident::{D01, D02, Y21};
+        use crate::ident::{day::*, year::*};
 
         let tempdir = tempdir()?;
         let mut config = create_config_for(&tempdir)?;

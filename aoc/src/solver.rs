@@ -16,7 +16,7 @@ use crate::ident::{Day, Part, Year};
 /// will then need to parse the input data by itself:
 ///
 /// ```
-/// use aoc::{solver, D01, Y21};
+/// use aoc::{day::*, solver, year::*};
 ///
 /// fn y21d01p1(_input: &str) -> Result<u8, String> {
 ///     // Read personal puzzle input from file.
@@ -34,7 +34,7 @@ use crate::ident::{Day, Part, Year};
 /// For some puzzles, it makes sense to parse the input only once:
 ///
 /// ```
-/// use aoc::{solver, D01, Y21};
+/// use aoc::{day::*, solver, year::*};
 ///
 /// fn y21d01_preproc(_input: &str) -> Result<u8, String> {
 ///     // Read personal puzzle input from file.

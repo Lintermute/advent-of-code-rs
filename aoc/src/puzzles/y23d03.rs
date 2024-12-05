@@ -82,10 +82,7 @@ pub fn part2(data: &Data) -> Result<u32> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D03, Y23},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 

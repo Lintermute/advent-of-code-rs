@@ -70,10 +70,7 @@ pub fn part2(data: &[Instr]) -> Result<u64> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D03, Y24},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 

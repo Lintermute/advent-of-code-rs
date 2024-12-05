@@ -19,7 +19,7 @@ use tokio::{
 };
 
 use crate::{
-    ident::{Day, Id, Year, P1, P2},
+    ident::{part, Day, Id, Year},
     solver::{num_threads, Event, Parts, Solver, State, Step},
 };
 
@@ -194,10 +194,10 @@ impl UiActor {
                             format!("preprocess {} input", Id((y, d)))
                         }
                         Step::Part1 => {
-                            format!("solve {}", Id((y, d, P1)))
+                            format!("solve {}", Id((y, d, part::P1)))
                         }
                         Step::Part2 => {
-                            format!("solve {}", Id((y, d, P2)))
+                            format!("solve {}", Id((y, d, part::P2)))
                         }
                     };
                     Line::from(format!("ERROR: Failed to {action}: {err}"))

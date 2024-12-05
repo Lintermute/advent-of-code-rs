@@ -13,7 +13,7 @@ mod parser;
 mod ui;
 
 pub use fs::Config;
-pub use ident::{D01, D02, D03, D04, D05, D15, P1, P2, Y21, Y23, Y24};
+pub use ident::{day, year};
 
 use std::{
     io::Write,
@@ -29,7 +29,10 @@ use ident::{Filter, Id};
 use solver::{Event, Parts, Solver};
 use ui::{Summary, Terminated, Ui};
 
+use day::*;
+use ident::part::*;
 use puzzles::*;
+use year::*;
 
 const SOLVERS: &[Solver] = &[
     solver!(Y21, D01, y21d01::part1, y21d01::part2, y21d01::parse),
@@ -211,7 +214,7 @@ mod tests {
     use test_case::test_case;
     use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 
-    use ident::{Day, FilterTerm, Id, Year, D04, D05, D06};
+    use ident::{Day, FilterTerm, Id, Year};
     use solver::{State, Step};
 
     use super::*;

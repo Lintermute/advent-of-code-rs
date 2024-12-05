@@ -108,10 +108,7 @@ fn sort(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D05, Y24},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 
