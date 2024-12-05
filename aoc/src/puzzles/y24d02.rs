@@ -1,104 +1,65 @@
-use itertools::Itertools;
 use lazy_errors::{prelude::*, Result};
 
-type Input = Vec<Vec<u8>>;
-
-pub fn parse(input: &str) -> Result<Input> {
+pub fn parse(input: &str) -> Result<Vec<Vec<i8>>> {
     use core::str::FromStr;
 
-    let lists = input
+    input
         .lines()
         .map(|line| {
-            let levels: Vec<u8> = line
-                .split_whitespace()
-                .map(u8::from_str)
-                .try_collect()
-                .or_wrap_with(|| "TODO")?;
-
-            Ok(levels)
+            line.split_whitespace()
+                .map(i8::from_str)
+                .collect::<Result<_, _>>()
+                .or_wrap_with(|| format!("Failed to parse line: '{line}'"))
         })
-        .collect::<Result<_>>()?;
-
-    Ok(lists)
+        .collect()
 }
 
-pub fn part1(reports: &Input) -> Result<usize> {
+pub fn part1(reports: &[Vec<i8>]) -> Result<usize> {
     let count = reports
         .iter()
-        .filter(|levels| {
-            let a = levels
-                .iter()
-                .tuple_windows()
-                .all(|(l, r)| l < r);
-            let b = levels
-                .iter()
-                .tuple_windows()
-                .all(|(l, r)| l > r);
-            let c = levels
-                .iter()
-                .tuple_windows()
-                .map(|(l, r)| l.abs_diff(*r))
-                .all(|d| d <= 3);
+        .filter(|levels| find_error(levels).is_none())
+        .count();
 
-            (a || b) && c
+    Ok(count)
+}
+
+pub fn part2(reports: &[Vec<i8>]) -> Result<usize> {
+    let count = reports
+        .iter()
+        .filter(|&levels| {
+            if let Some(err) = find_error(levels) {
+                is_fixable_up_to(levels, err)
+            } else {
+                true
+            }
         })
         .count();
 
     Ok(count)
 }
 
-pub fn part2(reports: &Input) -> Result<usize> {
-    let count = reports
-        .iter()
-        .filter(|levels| {
-            let a = levels
-                .iter()
-                .tuple_windows()
-                .all(|(l, r)| l < r);
-            let b = levels
-                .iter()
-                .tuple_windows()
-                .all(|(l, r)| l > r);
-            let c = levels
-                .iter()
-                .tuple_windows()
-                .map(|(l, r)| l.abs_diff(*r))
-                .all(|d| d <= 3);
+fn find_error(levels: &[i8]) -> Option<usize> {
+    let diff = levels[1] - levels[0];
+    if !(1..=3).contains(&diff.abs()) {
+        return Some(1);
+    }
 
-            let o = (a || b) && c;
-            if o {
-                return true;
-            }
+    for i in 2..levels.len() {
+        let d = levels[i] - levels[i - 1];
+        if !(1..=3).contains(&d.abs()) || d.signum() != diff.signum() {
+            return Some(i);
+        }
+    }
 
-            for i in 0..levels.len() {
-                let mut lvl: Vec<u8> = (*levels).clone();
-                lvl.remove(i);
+    None
+}
 
-                let a = lvl
-                    .iter()
-                    .tuple_windows()
-                    .all(|(l, r)| l < r);
-                let b = lvl
-                    .iter()
-                    .tuple_windows()
-                    .all(|(l, r)| l > r);
-                let c = lvl
-                    .iter()
-                    .tuple_windows()
-                    .map(|(l, r)| l.abs_diff(*r))
-                    .all(|d| d <= 3);
-
-                let o = (a || b) && c;
-                if o {
-                    return true;
-                }
-            }
-
-            false
-        })
-        .count();
-
-    Ok(count)
+fn is_fixable_up_to(levels: &[i8], i: usize) -> bool {
+    (0..=i).rev().any(|i| {
+        let mut levels: Vec<i8> = levels.to_vec();
+        levels.remove(i);
+        find_error(&levels).is_none()
+    })
 }
 
 #[cfg(test)]
