@@ -13,7 +13,7 @@ mod parser;
 mod ui;
 
 pub use fs::Config;
-pub use ident::{D01, D02, D03, D04, D15, P1, P2, Y21, Y23, Y24};
+pub use ident::{D01, D02, D03, D04, D05, D15, P1, P2, Y21, Y23, Y24};
 
 use std::{
     io::Write,
@@ -41,6 +41,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y24, D02, y24d02::part1, y24d02::part2, y24d02::parse),
     solver!(Y24, D03, y24d03::part1, y24d03::part2, y24d03::parse),
     solver!(Y24, D04, y24d04::part1, y24d04::part2, y24d04::parse),
+    solver!(Y24, D05, y24d05::part1, y24d05::part2, y24d05::parse),
 ];
 
 #[derive(Debug)]
@@ -266,6 +267,7 @@ mod tests {
         (Y24, D02, Parts::Both),
         (Y24, D03, Parts::Both),
         (Y24, D04, Parts::Both),
+        (Y24, D05, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
         let filter = Filter::from(
