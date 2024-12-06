@@ -7,3 +7,4 @@ publish = false
 
 [dependencies]
 aoc = { path = "../aoc" }
+paste = { workspace = true }

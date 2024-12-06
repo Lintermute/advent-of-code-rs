@@ -66,10 +66,7 @@ pub fn part2(data: &HashMap<Point, char>) -> Result<u32> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D04, Y24},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 

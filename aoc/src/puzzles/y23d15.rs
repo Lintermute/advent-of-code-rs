@@ -122,10 +122,7 @@ fn hash(s: &str) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D15, Y23},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 

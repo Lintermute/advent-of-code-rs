@@ -1,13 +1,14 @@
-mod day;
+pub mod day;
+pub mod part;
+pub mod year;
+
 mod filter;
 mod id;
-mod part;
-mod year;
 
 pub use self::{
-    day::*,
+    day::Day,
     filter::{Filter, FilterTerm},
     id::Id,
-    part::{Part, P1, P2},
-    year::*,
+    part::Part,
+    year::Year,
 };

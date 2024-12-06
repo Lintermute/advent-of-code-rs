@@ -66,10 +66,7 @@ pub fn part2((left, right): &(Vec<u64>, Vec<u64>)) -> Result<u64> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        fs::Config,
-        ident::{D01, Y24},
-    };
+    use crate::{day::*, fs::Config, year::*};
 
     use super::*;
 
