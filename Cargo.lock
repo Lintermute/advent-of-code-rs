@@ -135,6 +135,7 @@ name = "api-2024"
 version = "0.0.0"
 dependencies = [
  "aoc",
+ "paste",
 ]
 
 [[package]]
