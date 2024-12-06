@@ -155,7 +155,7 @@ jobs:
 
 
   miri:
-    timeout-minutes: 60
+    timeout-minutes: 120
     runs-on: ${{ matrix.system }}
 
     strategy:
