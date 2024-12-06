@@ -1,64 +1,70 @@
 use std::collections::HashMap;
 
 use itertools::Itertools;
-use lazy_errors::Result;
+use lazy_errors::{prelude::*, Result};
 
-pub struct Instr {
-    map:     HashMap<u8, Vec<u8>>,
-    updates: Vec<Vec<u8>>,
+pub struct PrintQueue {
+    rules: HashMap<u8, Vec<u8>>,
+    good:  Vec<Vec<u8>>,
+    bad:   Vec<Vec<u8>>,
 }
 
-pub fn parse(input: &str) -> Result<Instr> {
-    use core::str::FromStr;
-
+pub fn parse(input: &str) -> Result<PrintQueue> {
     let mut lines = input.lines();
 
-    let map = (&mut lines)
+    let rules = (&mut lines)
         .take_while(|line| !line.is_empty())
         .map(|line| {
             let [l, r] = line
                 .split('|')
                 .collect::<Vec<_>>()
                 .try_into()
-                .unwrap();
-            let l = u8::from_str(l).unwrap();
-            let r = u8::from_str(r).unwrap();
-            (l, r)
+                .map_err(|_| err!("Invalid line: '{line}'"))?;
+
+            let l = parse_page_number(l)?;
+            let r = parse_page_number(r)?;
+
+            Ok((l, r))
         })
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
         .into_group_map();
 
-    let updates: Vec<_> = lines
+    let (good, bad) = lines
         .map(|line| {
             line.split(',')
-                .map(|k| u8::from_str(k).unwrap())
-                .collect::<Vec<_>>()
+                .map(parse_page_number)
+                .collect::<Result<Vec<_>>>()
         })
-        .collect();
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .partition(|update| is_correct(update, &rules));
 
-    Ok(Instr { map, updates })
+    Ok(PrintQueue { rules, good, bad })
 }
 
-pub fn part1(data: &Instr) -> Result<u64> {
-    let sum = data
-        .updates
+pub fn part1(data: &PrintQueue) -> Result<u32> {
+    Ok(data
+        .good
         .iter()
-        .filter(|pages| is_correct(pages, &data.map))
         .map(|pages| pages[pages.len() / 2])
-        .map(u64::from)
-        .sum();
-    Ok(sum)
+        .map(u32::from)
+        .sum())
 }
 
-pub fn part2(data: &Instr) -> Result<u64> {
-    let sum = data
-        .updates
+pub fn part2(data: &PrintQueue) -> Result<u32> {
+    Ok(data
+        .bad
         .iter()
-        .filter(|pages| !is_correct(pages, &data.map))
-        .map(|pages| sort(pages, &data.map))
+        .map(|pages| sort(pages, &data.rules))
         .map(|pages| pages[pages.len() / 2])
-        .map(u64::from)
-        .sum();
-    Ok(sum)
+        .map(u32::from)
+        .sum())
+}
+
+fn parse_page_number(s: &str) -> Result<u8> {
+    use core::str::FromStr;
+    u8::from_str(s).or_wrap_with(|| format!("Not a page number: '{s}'"))
 }
 
 fn is_correct(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> bool {
@@ -94,7 +100,8 @@ fn sort(pages: &[u8], rules: &HashMap<u8, Vec<u8>>) -> Vec<u8> {
                 .min()
             {
                 if j < i {
-                    pages.swap(i, j);
+                    let e = pages.remove(i);
+                    pages.insert(j, e);
                     swapped = true;
                 }
             }
