@@ -6,10 +6,23 @@ use std::str::FromStr;
 
 use lazy_errors::{prelude::*, Result};
 use lazy_regex::regex::Regex;
+use rayon::iter::ParallelIterator;
 
 pub use point::Point;
 pub use rect::Rect;
 pub use vector::Vector;
+
+/// Parallel variant of [`parse_each`] based on [`rayon::ParallelIterator`].
+pub fn par_parse_each<T, E, S>(
+    iter: impl ParallelIterator<Item = S>,
+) -> impl ParallelIterator<Item = Result<T, Error>>
+where
+    T: FromStr<Err = E> + Send,
+    E: Into<Stashable>,
+    S: AsRef<str>,
+{
+    iter.map(|stringly| parse(stringly))
+}
 
 /// Calls [`parse`] on each element of the iterator.
 pub fn parse_each<T, E, S>(
