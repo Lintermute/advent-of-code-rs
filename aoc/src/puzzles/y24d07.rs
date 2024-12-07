@@ -1,20 +1,23 @@
+use core::iter;
+
 use itertools::Itertools;
 use lazy_errors::{prelude::*, Result};
+use rayon::prelude::*;
 
 use crate::parser;
 
-type Input = Vec<Equation>;
-
 pub struct Equation {
-    result:   u64,
-    operands: Vec<u16>,
+    result:  u64,
+    numbers: Vec<u64>,
 }
+
+type Op = fn(u64, u64) -> u64;
 
 impl core::str::FromStr for Equation {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
-        let [result, operands] = s
+        let [result, numbers] = s
             .split(": ")
             .collect::<Vec<_>>()
             .try_into()
@@ -24,84 +27,86 @@ impl core::str::FromStr for Equation {
             .parse()
             .or_wrap_with(|| format!("Failed to parse result: '{result}'"))?;
 
-        let operands = operands
+        let numbers = numbers
             .split(' ')
-            .map(|operand| -> Result<u16> {
-                operand.parse().or_wrap_with(|| {
-                    format!("Failed to parse operand: '{operand}'")
+            .map(|number| {
+                number.parse().or_wrap_with(|| {
+                    format!("Failed to parse number: '{number}'")
                 })
             })
             .collect::<Result<_>>()?;
 
-        Ok(Equation { result, operands })
+        Ok(Equation { result, numbers })
     }
 }
 
-pub fn parse(input: &str) -> Result<Input> {
-    parser::parse_each(input.lines()).collect()
+pub fn parse(input: &str) -> Result<Vec<Equation>> {
+    parser::par_parse_each(input.par_lines()).collect()
 }
 
-pub fn part1(input: &Input) -> Result<u64> {
+pub fn part1(input: &[Equation]) -> Result<u64> {
     Ok(input
-        .iter()
-        .filter(|equation| {
-            let n = equation.operands.len();
-            let add = |l, r| l + r;
-            let mul = |l, r| l * r;
-
-            (1..n)
-                .map(|_| vec![add, mul])
-                .multi_cartesian_product()
-                .map(|ops| {
-                    let mut ops = ops.iter();
-                    equation
-                        .operands
-                        .iter()
-                        .copied()
-                        .map(u64::from)
-                        .reduce(|acc, e| {
-                            let op = ops.next().unwrap();
-                            op(acc, e)
-                        })
-                        .unwrap()
-                })
-                .any(|result| result == equation.result)
+        .par_iter()
+        .filter(|Equation { result, numbers }| {
+            let n = numbers.len();
+            cartesian_products(n - 1, &[add, mul])
+                .any(|ops| is_equal(numbers, &ops, *result))
         })
         .map(|equation| equation.result)
         .sum())
 }
 
-pub fn part2(input: &Input) -> Result<u64> {
-    use core::str::FromStr;
-
+pub fn part2(input: &[Equation]) -> Result<u64> {
     Ok(input
-        .iter()
-        .filter(|equation| {
-            let n = equation.operands.len();
-            let add = |l, r| l + r;
-            let mul = |l, r| l * r;
-            let cat = |l, r| u64::from_str(&format!("{l}{r}")).unwrap();
-
-            (1..n)
-                .map(|_| vec![add, mul, cat])
-                .multi_cartesian_product()
-                .map(|ops| {
-                    let mut ops = ops.iter();
-                    equation
-                        .operands
-                        .iter()
-                        .copied()
-                        .map(u64::from)
-                        .reduce(|acc, e| {
-                            let op = ops.next().unwrap();
-                            op(acc, e)
-                        })
-                        .unwrap()
-                })
-                .any(|result| result == equation.result)
+        .par_iter()
+        .filter(|Equation { result, numbers }| {
+            let n = numbers.len();
+            cartesian_products(n - 1, &[add, mul, cat])
+                .any(|ops| is_equal(numbers, &ops, *result))
         })
         .map(|equation| equation.result)
         .sum())
+}
+
+fn add(l: u64, r: u64) -> u64 {
+    l + r
+}
+
+fn mul(l: u64, r: u64) -> u64 {
+    l * r
+}
+
+fn cat(l: u64, r: u64) -> u64 {
+    format!("{l}{r}")
+        .parse()
+        .or_wrap_with::<Stashable>(|| format!("Failed to compute `{l} || {r}`"))
+        .unwrap()
+}
+
+fn cartesian_products(
+    n: usize,
+    operations: &[Op],
+) -> impl Iterator<Item = Vec<&Op>> {
+    (0..n)
+        .map(|_| operations)
+        .multi_cartesian_product()
+}
+
+fn is_equal(numbers: &[u64], operations: &[&Op], expectation: u64) -> bool {
+    let mut numbers = numbers.iter();
+    let Some(mut acc) = numbers.next().copied() else {
+        return false;
+    };
+
+    for (op, &number) in iter::zip(operations, numbers) {
+        acc = op(acc, number);
+        if acc > expectation {
+            // Won't get smaller because `+`, `*`, `||` only increase values.
+            return false;
+        }
+    }
+
+    acc == expectation
 }
 
 #[cfg(test)]
