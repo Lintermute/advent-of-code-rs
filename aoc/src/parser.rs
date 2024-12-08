@@ -12,6 +12,25 @@ pub use point::Point;
 pub use rect::Rect;
 pub use vector::Vector;
 
+pub fn parse_bounds(input: &str) -> Result<Rect> {
+    let mut lens: Vec<usize> = input
+        .lines()
+        .map(|line| line.len())
+        .collect();
+
+    let y = lens.len();
+
+    lens.dedup(); // Leaves good values after first bad one, but we don't care.
+
+    let [x] = lens
+        .try_into()
+        .map_err(|v| err!("Line lengths differ: {v:?}"))?;
+
+    let p = Point::new(0, 0);
+    let v = Vector::from_unsigned(y, x)?;
+    Ok(Rect::new(p, v))
+}
+
 /// Parallel variant of [`parse_each`] based on [`rayon::ParallelIterator`].
 pub fn par_parse_each<T, E, S>(
     iter: impl ParallelIterator<Item = S>,

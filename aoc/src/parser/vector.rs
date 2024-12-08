@@ -51,7 +51,7 @@ impl std::ops::Neg for Vector {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self {
+        Vector {
             y: -self.y,
             x: -self.x,
         }
@@ -62,9 +62,9 @@ impl Add for Vector {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let Self { y: y_l, x: x_l } = self;
-        let Self { y: y_r, x: x_r } = rhs;
-        Self {
+        let Vector { y: y_l, x: x_l } = self;
+        let Vector { y: y_r, x: x_r } = rhs;
+        Vector {
             y: y_l + y_r,
             x: x_l + x_r,
         }
