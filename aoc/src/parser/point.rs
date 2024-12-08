@@ -37,6 +37,14 @@ impl TryFrom<Rect> for Point {
     }
 }
 
+impl std::ops::Sub<Point> for Point {
+    type Output = Vector;
+
+    fn sub(self, rhs: Point) -> Self::Output {
+        self.0 - rhs.0
+    }
+}
+
 impl std::ops::Add<Vector> for Point {
     type Output = Self;
 
