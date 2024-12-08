@@ -24,7 +24,9 @@ use crate::{
 };
 
 const TABLE_HEADER: &str = "\
-Day ───┬ Download ┬ Prep ────┬ Part 1 ─────────────────┬ Part 2 ────────────────
+Day ───┬ Fetch ──┬ Parse ──┬ \
+Part 1 ──────────────────────┬ \
+Part 2 ─────────────────────
 ";
 
 const SPINNERS: [&str; 8] = ["⢎⡡", "⢎⡑", "⢎⠱", "⠎⡱", "⢊⡱", "⢌⡱", "⢆⡱", "⢎⡰"];
@@ -506,17 +508,11 @@ fn restore_terminal(mut term: Terminal) -> Result<()> {
 
 fn format_column_time(state: &State, now: Instant) -> String {
     match state {
-        State::Waiting => "        ".to_string(),
-        State::Skipped => "     ---".to_string(),
-        State::Started(t) => {
-            let time = format_time(&now.duration_since(*t));
-            format!(" {time}")
-        }
-        State::Done(t, Ok(_)) => {
-            let time = format_time(t);
-            format!(" {time}")
-        }
-        State::Done(_t, Err(_)) => "  ERROR!".to_string(),
+        State::Waiting => "       ".to_string(),
+        State::Skipped => "    ---".to_string(),
+        State::Started(t) => format_time(&now.duration_since(*t)).to_string(),
+        State::Done(t, Ok(_)) => format_time(t).to_string(),
+        State::Done(_t, Err(_)) => " ERROR!".to_string(),
     }
 }
 
@@ -526,28 +522,28 @@ fn format_column_answer_and_time(
     now: Instant,
 ) -> String {
     match state {
-        //                 12345678901234567890123
-        State::Waiting => "                       ".to_string(),
-        State::Skipped => "                    ---".to_string(),
+        //                      12345678901234567890123
+        State::Waiting => "                            ".to_string(),
+        State::Skipped => "                         ---".to_string(),
         State::Started(t) => {
             let time = format_time(&now.duration_since(*t));
-            format!("{spinner:>14}  {time}") // spinner is double-width
+            format!("{spinner:>20} {time}") // spinner is double-width
         }
         State::Done(t, Ok(None)) => {
             let time = format_time(t);
-            format!("{time:>23}")
+            format!("{time:>28}")
         }
         State::Done(t, Ok(Some(result))) => {
             let time = format_time(t);
-            format!("{result:>14}  {time}")
+            format!("{result:>20} {time}")
         }
         State::Done(_t, Err(e)) => {
             let mut e = e.to_string();
-            if e.len() > 16 {
-                e.truncate(15);
+            if e.len() > 21 {
+                e.truncate(20);
                 e.push('…');
             }
-            format!("ERROR: {:16}", &e[0..e.len()])
+            format!("ERROR: {:21}", &e[0..e.len()])
         }
     }
 }
@@ -582,20 +578,20 @@ mod tests {
     use super::*;
 
     //           12345678901234567890123
-    #[test_case("                       ", |_, _| State::Waiting)]
-    #[test_case("                    ---", |_, _| State::Skipped)]
-    #[test_case("            ⢎⡡    42 ms",
+    #[test_case("                            ", |_, _| State::Waiting)]
+    #[test_case("                         ---", |_, _| State::Skipped)]
+    #[test_case("                  ⢎⡡   42 ms",
         |t, d| State::Started(t - d))]
-    #[test_case("                  42 ms",
+    #[test_case("                       42 ms",
         |_, d| State::Done(d, Ok(None)))]
-    #[test_case("           123    42 ms",
+    #[test_case("                 123   42 ms",
         |_, d| State::Done(d, Ok(Some(Box::new(123)))))]
-    #[test_case("    1234567890    42 ms",
+    #[test_case("          1234567890   42 ms",
         |_, d| State::Done(d, Ok(Some(Box::new(1234567890)))))]
-    #[test_case("ERROR: Foobar failed...",
-        |_, d| State::Done(d, Err(err!("Foobar failed..."))))]
-    #[test_case("ERROR: Foobar failed n…",
-        |_, d| State::Done(d, Err(err!("Foobar failed now"))))]
+    #[test_case("ERROR: Foobar just failed...",
+        |_, d| State::Done(d, Err(err!("Foobar just failed..."))))]
+    #[test_case("ERROR: Foobar just failed n…",
+        |_, d| State::Done(d, Err(err!("Foobar just failed now"))))]
     fn format(expected: &str, state: impl FnOnce(Instant, Duration) -> State) {
         let dur = Duration::from_millis(42);
         let begin = Instant::now() - dur;
