@@ -10,15 +10,15 @@ use lazy_errors::{prelude::*, Result};
 use crate::parser::{self, Point, Rect, Vector};
 
 pub fn parse(input: &str) -> Result<Grid> {
-    let area = area(input)?;
+    let bounds = parser::parse_bounds(input)?;
     let guard = parse_guard(input)?;
     let stuff = parse_stuff(input)?;
-    let trace = walk(guard, &area, &stuff)
+    let trace = walk(guard, &bounds, &stuff)
         .map(|g| g.p)
         .collect();
 
     Ok(Grid {
-        area,
+        bounds,
         guard,
         stuff,
         trace,
@@ -37,7 +37,7 @@ pub fn part2(grid: &Grid) -> Result<usize> {
             let mut stuff = grid.stuff.clone();
             stuff.insert(p);
 
-            let mut path_iter = walk(grid.guard, &grid.area, &stuff);
+            let mut path_iter = walk(grid.guard, &grid.bounds, &stuff);
             !path_iter.all_unique()
         })
         .count();
@@ -47,10 +47,10 @@ pub fn part2(grid: &Grid) -> Result<usize> {
 
 #[derive(Debug)]
 pub struct Grid {
-    area:  Rect,
-    guard: Guard,
-    stuff: HashSet<Point>,
-    trace: HashSet<Point>,
+    bounds: Rect,
+    guard:  Guard,
+    stuff:  HashSet<Point>,
+    trace:  HashSet<Point>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
@@ -124,25 +124,6 @@ impl From<Direction> for Vector {
             Direction::L => Vector::new(0, -1),
         }
     }
-}
-
-fn area(input: &str) -> Result<Rect> {
-    let mut lens: Vec<usize> = input
-        .lines()
-        .map(|line| line.len())
-        .collect();
-
-    let y = lens.len();
-
-    lens.dedup(); // Leaves good values after first bad one, but we don't care.
-
-    let [x] = lens
-        .try_into()
-        .map_err(|v| err!("Line lengths differ: {v:?}"))?;
-
-    let p = Point::new(0, 0);
-    let v = Vector::from_unsigned(y, x)?;
-    Ok(Rect::new(p, v))
 }
 
 fn parse_guard(input: &str) -> Result<Guard> {
