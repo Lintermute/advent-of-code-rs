@@ -207,7 +207,7 @@ impl RepoDir {
         let mut path = self.path.clone();
         path.push(format!(
             "aoc/example_puzzle_inputs/\
-            {id}/{id}_example_puzzle_input_{label}.txt"
+            {id}_example_puzzle_input_{label}.txt"
         ));
 
         Ok(path)
