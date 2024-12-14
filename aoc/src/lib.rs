@@ -50,6 +50,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y24, D08, y24d08::part1, y24d08::part2, y24d08::parse),
     solver!(Y24, D12, y24d12::part1, y24d12::part2, y24d12::parse),
     solver!(Y24, D13, y24d13::part1, y24d13::part2, y24d13::parse),
+    solver!(Y24, D14, y24d14::part1, y24d14::part2, y24d14::parse),
 ];
 
 #[derive(Debug)]
@@ -281,6 +282,7 @@ mod tests {
         (Y24, D08, Parts::Both),
         (Y24, D12, Parts::Both),
         (Y24, D13, Parts::Both),
+        (Y24, D14, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
         let filter = Filter::from(
@@ -812,6 +814,8 @@ mod tests {
     // #[test_case("y24d12p2")]
     // #[test_case("y24d13p1")]
     // #[test_case("y24d13p2")]
+    // #[test_case("y24d14p1")]
+    // #[test_case("y24d14p2")]
     #[tokio::test]
     #[ignore] // Requires manually saving the personal puzzles answers before
     async fn solve_personal_inputs(filter: &str) -> Result<()> {
