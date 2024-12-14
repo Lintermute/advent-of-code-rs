@@ -19,7 +19,7 @@ pub struct Rect {
 }
 
 impl Rect {
-    pub fn new(p: Point, v: Vector) -> Self {
+    pub const fn new(p: Point, v: Vector) -> Self {
         Self { p, v }
     }
 
