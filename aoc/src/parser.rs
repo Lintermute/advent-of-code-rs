@@ -2,7 +2,9 @@ mod point;
 mod rect;
 mod vector;
 
-use std::str::FromStr;
+use core::{fmt, str::FromStr};
+
+use std::collections::HashSet;
 
 use lazy_errors::{prelude::*, Result};
 use lazy_regex::regex::Regex;
@@ -11,6 +13,48 @@ use rayon::iter::ParallelIterator;
 pub use point::Point;
 pub use rect::Rect;
 pub use vector::Vector;
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Grid {
+    bounds: Rect,
+    data:   HashSet<Point>,
+}
+
+impl Grid {
+    pub fn from<T: IntoIterator<Item = Point>>(bounds: Rect, iter: T) -> Self {
+        let data = iter.into_iter().collect();
+        Self { bounds, data }
+    }
+}
+
+impl fmt::Display for Grid {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use itertools::Itertools;
+
+        let y_min = self.bounds.pos().y();
+        let y_len = self.bounds.len().y();
+        let x_min = self.bounds.pos().x();
+        let x_len = self.bounds.len().x();
+
+        write!(
+            f,
+            "{}",
+            (y_min..(y_min + y_len))
+                .map(|y| {
+                    (x_min..(x_min + x_len))
+                        .map(|x| {
+                            if self.data.contains(&Point::new(y, x)) {
+                                '#'
+                            } else {
+                                ' '
+                            }
+                        })
+                        .collect::<String>()
+                })
+                .join("\n")
+        )
+    }
+}
 
 pub fn parse_bounds(input: &str) -> Result<Rect> {
     let mut lens: Vec<usize> = input
@@ -149,6 +193,26 @@ pub fn regex_captures<'a>(
         .filter_map(move |cap| {
             let m = cap.get(1)?;
             Some((m.start(), m.len()))
+        })
+}
+
+pub fn contains_2d(haystack: &str, needle: &str) -> bool {
+    let haystack: Vec<&str> = haystack.lines().collect();
+    let needle: Vec<&str> = needle.lines().collect();
+
+    haystack
+        .iter()
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.match_indices(needle[0])
+                .map(move |(x, _match)| (y, x))
+        })
+        .any(|(y, x)| {
+            haystack
+                .iter()
+                .skip(y)
+                .zip(&needle)
+                .all(|(haystack, needle)| haystack[x..].starts_with(needle))
         })
 }
 

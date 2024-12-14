@@ -84,6 +84,18 @@ impl Sub for Vector {
     }
 }
 
+impl std::ops::Mul<isize> for Vector {
+    type Output = Self;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        let Vector { y, x } = self;
+        Vector {
+            y: y * rhs,
+            x: x * rhs,
+        }
+    }
+}
+
 impl PartialOrd for Vector {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self.y == other.y && self.x == other.x {
