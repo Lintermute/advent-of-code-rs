@@ -4,7 +4,6 @@ use num::Integer;
 use crate::parser::{self, Point, Rect, Vector};
 
 pub struct Input {
-    // bounds: Rect,
     robots: Vec<Robot>,
 }
 
@@ -12,15 +11,6 @@ pub struct Robot {
     p: Vector, // TODO
     v: Vector,
 }
-
-// impl core::str::FromStr for Input {
-//     type Err = Error;
-
-//     fn from_str(input: &str) -> Result<Self> {
-//         let _ = input;
-//         Ok(Self {})
-//     }
-// }
 
 impl core::str::FromStr for Robot {
     type Err = Error;
@@ -56,9 +46,7 @@ fn parse_coords(s: &str) -> Result<Vector> {
 
 pub fn parse(input: &str) -> Result<Input> {
     use itertools::Itertools;
-    // let bounds = parser::parse_bounds(input)?;
     let robots = parser::parse_each(input.lines()).try_collect()?;
-    // Ok(Input { bounds, robots })
     Ok(Input { robots })
 }
 
@@ -103,7 +91,37 @@ pub fn solve(input: &Input, bounds: Rect) -> Result<usize> {
 }
 
 pub fn part2(input: &Input) -> Result<usize> {
-    let _ = input;
+    use std::collections::HashSet;
+
+    for i in [7051] {
+        let grid: HashSet<Point> = input
+            .robots
+            .iter()
+            .map(|r| {
+                // let p = r.p + (r.v * 47);
+                let p = r.p + (r.v * i);
+                let (y, x) = (p.y(), p.x());
+                let (y, x) = (y.mod_floor(&103), x.mod_floor(&101));
+                Point::new(y, x)
+            })
+            .collect();
+        print!("\x1B[2J\x1B[1;1H");
+        for y in 0..103 {
+            for x in 0..101 {
+                let char = match grid.get(&Point::new(y, x)) {
+                    Some(_) => '#',
+                    None => ' ',
+                };
+                print!("{char}");
+            }
+            println!()
+        }
+
+        println!("{i}");
+
+        std::thread::sleep(std::time::Duration::from_millis(500));
+    }
+
     Ok(0)
 }
 

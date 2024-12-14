@@ -104,6 +104,7 @@ async fn try_main() -> Result<Summary, Terminated> {
         Command::Login => login(config),
         Command::Logout => logout(config),
         Command::Solve(filter) => run_solvers(config, &filter).await,
+        Command::Render(id) => render_puzzle(config, &id).await,
         Command::Stats(filter) => print_stats(&config, &filter, stdout()),
     }
 }
@@ -163,6 +164,23 @@ async fn run_solvers(
     let ui = Ui::open(puzzles.clone())?;
     spawn_actors(config, puzzles, ui.tx());
     ui.join().await
+}
+
+async fn render_puzzle(
+    config: Config,
+    filter: &Filter, // FIXME: Use ID
+) -> Result<Summary, Terminated> {
+    let puzzles = filter_puzzles(SOLVERS, filter);
+
+    // let ui = Ui::open(puzzles.clone())?;
+    let (tx, mut rx) = mpsc::channel(100); // FIXME
+    spawn_actors(config, puzzles, tx);
+    // ui.join().await
+    while (rx.recv().await).is_some() {
+        //
+    }
+
+    Ok(Summary::Success) // FIXME
 }
 
 fn print_stats(

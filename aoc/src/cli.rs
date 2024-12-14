@@ -6,6 +6,8 @@ pub enum Command {
     Logout,
     Solve(Filter),
     Stats(Filter),
+    // Render(Id<(Year, Day, Part)>),
+    Render(Filter),
 }
 
 #[derive(clap::Parser, Debug, Clone, PartialEq, Hash, Eq)]
@@ -56,6 +58,8 @@ enum CliCommand {
     /// The files must be named `y21_personal_leaderboard_statistics.txt`
     /// for year 2021, for example.
     Stats(Puzzles),
+    // TODO
+    Render(Puzzles),
 }
 
 #[derive(clap::Args, Debug, Clone, PartialEq, Hash, Eq)]
@@ -99,6 +103,10 @@ where
         Some(CliCommand::Logout) => Command::Logout,
         Some(CliCommand::Solve(puzzles)) => {
             Command::Solve(Filter::from(puzzles))
+        }
+        Some(CliCommand::Render(puzzles)) => {
+            // TODO
+            Command::Render(Filter::from(puzzles))
         }
         Some(CliCommand::Stats(puzzles)) => {
             Command::Stats(Filter::from(puzzles))
