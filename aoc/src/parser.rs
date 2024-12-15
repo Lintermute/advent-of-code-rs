@@ -4,7 +4,7 @@ mod vector;
 
 use core::{fmt, str::FromStr};
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use lazy_errors::{prelude::*, Result};
 use lazy_regex::regex::Regex;
@@ -20,10 +20,45 @@ pub struct Grid {
     data:   HashSet<Point>,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Grid2<T> {
+    bounds:    Rect,
+    pub tiles: HashMap<Point, T>,
+}
+
 impl Grid {
     pub fn from<T: IntoIterator<Item = Point>>(bounds: Rect, iter: T) -> Self {
         let data = iter.into_iter().collect();
         Self { bounds, data }
+    }
+}
+
+impl<T> Grid2<T>
+where
+    T: PartialEq,
+{
+    // pub fn from<I: IntoIterator<Item = (Point, T)>>(
+    //     bounds: Rect,
+    //     iter: I,
+    // ) -> Self {
+    //     let tiles = iter.into_iter().collect();
+    //     Self { bounds, tiles }
+    // }
+
+    pub fn try_from<I: IntoIterator<Item = Result<(Point, T)>>>(
+        bounds: Rect,
+        iter: I,
+    ) -> Result<Self> {
+        let tiles = iter
+            .into_iter()
+            .collect::<Result<_>>()?;
+        Ok(Self { bounds, tiles })
+    }
+
+    pub fn position(&self, tile: &T) -> Option<Point> {
+        self.tiles
+            .iter()
+            .find_map(|(k, v)| if v == tile { Some(*k) } else { None })
     }
 }
 
@@ -48,6 +83,35 @@ impl fmt::Display for Grid {
                             } else {
                                 ' '
                             }
+                        })
+                        .collect::<String>()
+                })
+                .join("\n")
+        )
+    }
+}
+
+impl<T> fmt::Display for Grid2<T>
+where
+    T: fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use itertools::Itertools;
+
+        let y_min = self.bounds.pos().y();
+        let y_len = self.bounds.len().y();
+        let x_min = self.bounds.pos().x();
+        let x_len = self.bounds.len().x();
+
+        write!(
+            f,
+            "{}",
+            (y_min..(y_min + y_len))
+                .map(|y| {
+                    (x_min..(x_min + x_len))
+                        .map(|x| match self.tiles.get(&Point::new(y, x)) {
+                            Some(tile) => tile.to_string(),
+                            None => String::from(" "),
                         })
                         .collect::<String>()
                 })
