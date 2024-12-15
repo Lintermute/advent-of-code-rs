@@ -22,8 +22,8 @@ pub struct Grid {
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Grid2<T> {
-    bounds:    Rect,
-    pub tiles: HashMap<Point, T>,
+    pub bounds: Rect,
+    pub tiles:  HashMap<Point, T>,
 }
 
 impl Grid {

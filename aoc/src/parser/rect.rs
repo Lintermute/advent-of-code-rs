@@ -44,6 +44,12 @@ impl Rect {
         o <= p && p <= q
     }
 
+    pub fn move_by(&self, v: &Vector) -> Self {
+        let p = self.p + *v;
+        let v = self.v;
+        Self { p, v }
+    }
+
     /// Expands the rectangle in all four directions,
     /// without checking for overflows and
     /// without using saturating arithmetic.
@@ -66,6 +72,24 @@ impl Rect {
         let p = Point::new(y, x);
         let v = Vector::new(dy, dx);
         Rect::new(p, v)
+    }
+
+    // TODO: From<Rect> for Vec<Point> ???
+    pub fn into_points(self) -> impl Iterator<Item = Point> {
+        // pub fn into_points(self) -> Vec<Point> {
+        // if self.v.y() == 0 || self.v.x() == 0 {
+        //     return vec![];
+        // }
+        let y_min = self.p.y();
+        let y_len = self.v.y();
+        let x_min = self.p.x();
+        let x_len = self.v.x();
+
+        (y_min..(y_min + y_len)).flat_map(move |y| {
+            (x_min..(x_min + x_len)).map(move |x| Point::new(y, x))
+        })
+        // .copied()
+        // .collect()
     }
 }
 
