@@ -7,9 +7,9 @@ use rayon::prelude::*;
 use itertools::Itertools;
 use lazy_errors::{prelude::*, Result};
 
-use crate::parser::{self, Point, Rect, Vector};
+use crate::parser::{self, Direction, Point, Rect, Vector};
 
-pub fn parse(input: &str) -> Result<Grid> {
+pub fn parse(input: &str) -> Result<MultiGrid> {
     let bounds = parser::parse_bounds(input)?;
     let guard = parse_guard(input)?;
     let stuff = parse_stuff(input)?;
@@ -17,7 +17,7 @@ pub fn parse(input: &str) -> Result<Grid> {
         .map(|g| g.p)
         .collect();
 
-    Ok(Grid {
+    Ok(MultiGrid {
         bounds,
         guard,
         stuff,
@@ -25,11 +25,11 @@ pub fn parse(input: &str) -> Result<Grid> {
     })
 }
 
-pub fn part1(grid: &Grid) -> Result<usize> {
+pub fn part1(grid: &MultiGrid) -> Result<usize> {
     Ok(grid.trace.len())
 }
 
-pub fn part2(grid: &Grid) -> Result<usize> {
+pub fn part2(grid: &MultiGrid) -> Result<usize> {
     let count = grid
         .trace
         .par_iter()
@@ -46,7 +46,7 @@ pub fn part2(grid: &Grid) -> Result<usize> {
 }
 
 #[derive(Debug)]
-pub struct Grid {
+pub struct MultiGrid {
     bounds: Rect,
     guard:  Guard,
     stuff:  HashSet<Point>,
@@ -57,14 +57,6 @@ pub struct Grid {
 struct Guard {
     p: Point,
     d: Direction,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
-enum Direction {
-    R,
-    D,
-    L,
-    U,
 }
 
 impl Guard {
@@ -84,44 +76,6 @@ impl Guard {
             Some(Self { p, d })
         } else {
             None
-        }
-    }
-}
-
-impl Direction {
-    pub fn rotate_clockwise(self) -> Self {
-        use Direction::*;
-        match self {
-            R => D,
-            D => L,
-            L => U,
-            U => R,
-        }
-    }
-}
-
-impl core::str::FromStr for Direction {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self> {
-        use Direction::*;
-        match s {
-            ">" => Ok(R),
-            "v" => Ok(D),
-            "<" => Ok(L),
-            "^" => Ok(U),
-            _ => Err(err!("Not a direction: '{s}'")),
-        }
-    }
-}
-
-impl From<Direction> for Vector {
-    fn from(val: Direction) -> Self {
-        match val {
-            Direction::U => Vector::new(-1, 0),
-            Direction::R => Vector::new(0, 1),
-            Direction::D => Vector::new(1, 0),
-            Direction::L => Vector::new(0, -1),
         }
     }
 }

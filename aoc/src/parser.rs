@@ -1,60 +1,20 @@
+mod direction;
+mod grid;
 mod point;
 mod rect;
 mod vector;
 
-use core::{fmt, str::FromStr};
-
-use std::collections::HashSet;
+use core::str::FromStr;
 
 use lazy_errors::{prelude::*, Result};
 use lazy_regex::regex::Regex;
 use rayon::iter::ParallelIterator;
 
+pub use direction::Direction;
+pub use grid::Grid;
 pub use point::Point;
 pub use rect::Rect;
 pub use vector::Vector;
-
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct Grid {
-    bounds: Rect,
-    data:   HashSet<Point>,
-}
-
-impl Grid {
-    pub fn from<T: IntoIterator<Item = Point>>(bounds: Rect, iter: T) -> Self {
-        let data = iter.into_iter().collect();
-        Self { bounds, data }
-    }
-}
-
-impl fmt::Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use itertools::Itertools;
-
-        let y_min = self.bounds.pos().y();
-        let y_len = self.bounds.len().y();
-        let x_min = self.bounds.pos().x();
-        let x_len = self.bounds.len().x();
-
-        write!(
-            f,
-            "{}",
-            (y_min..(y_min + y_len))
-                .map(|y| {
-                    (x_min..(x_min + x_len))
-                        .map(|x| {
-                            if self.data.contains(&Point::new(y, x)) {
-                                '#'
-                            } else {
-                                ' '
-                            }
-                        })
-                        .collect::<String>()
-                })
-                .join("\n")
-        )
-    }
-}
 
 pub fn parse_bounds(input: &str) -> Result<Rect> {
     let mut lens: Vec<usize> = input

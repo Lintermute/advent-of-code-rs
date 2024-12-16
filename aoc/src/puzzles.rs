@@ -12,3 +12,4 @@ pub mod y24d06;
 pub mod y24d07;
 pub mod y24d08;
 pub mod y24d14;
+pub mod y24d16;

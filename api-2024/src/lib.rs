@@ -29,3 +29,4 @@ api!(6, y24d06::part1, y24d06::part2, y24d06::parse);
 api!(7, y24d07::part1, y24d07::part2, y24d07::parse);
 api!(8, y24d08::part1, y24d08::part2, y24d08::parse);
 api!(14, y24d14::part1, y24d14::part2, y24d14::parse);
+api!(16, y24d16::part1, y24d16::part2, y24d16::parse);
