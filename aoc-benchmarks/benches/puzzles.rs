@@ -89,7 +89,8 @@ bench!(Y24, D05, y24d05::part1, y24d05::part2, y24d05::parse);
 bench!(Y24, D07, y24d07::part1, y24d07::part2, y24d07::parse);
 bench!(Y24, D08, y24d08::part1, y24d08::part2, y24d08::parse);
 bench!(Y24, D14, y24d14::part1, y24d14::part2, y24d14::parse);
+bench!(Y24, D16, y24d16::part1, y24d16::part2, y24d16::parse);
 criterion_main!(
     y21d02, y23d03, y24d01, y24d02, y24d03, y24d04, y24d05, y24d07, y24d08,
-    y24d14
+    y24d14, y24d16
 );

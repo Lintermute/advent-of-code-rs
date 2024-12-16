@@ -6,6 +6,8 @@ use std::{
 
 use lazy_errors::{prelude::*, Result};
 
+use super::Direction;
+
 #[derive(Copy, Debug, Clone, Default, PartialEq, Hash, Eq)]
 pub struct Vector {
     y: isize,
@@ -44,6 +46,17 @@ impl Vector {
 
     pub fn x(&self) -> isize {
         self.x
+    }
+}
+
+impl From<Direction> for Vector {
+    fn from(val: Direction) -> Self {
+        match val {
+            Direction::N => Vector::new(-1, 0),
+            Direction::E => Vector::new(0, 1),
+            Direction::S => Vector::new(1, 0),
+            Direction::W => Vector::new(0, -1),
+        }
     }
 }
 
