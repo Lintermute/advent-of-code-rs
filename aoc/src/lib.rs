@@ -814,6 +814,8 @@ mod tests {
     #[test_case("y24d14p2")]
     #[test_case("y24d16p1")]
     #[test_case("y24d16p2")]
+    // #[test_case("y24d17p1")]
+    // #[test_case("y24d17p2")]
     #[tokio::test]
     #[ignore] // Requires manually saving the personal puzzles answers before
     async fn solve_personal_inputs(filter: &str) -> Result<()> {
