@@ -13,6 +13,7 @@ pub const D08: Day = Day(8);
 pub const D14: Day = Day(14);
 pub const D15: Day = Day(15);
 pub const D16: Day = Day(16);
+pub const D17: Day = Day(17);
 
 /// Day of an Advent of Code challenge in the range `1..=25`.
 ///

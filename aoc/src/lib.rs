@@ -50,6 +50,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y24, D08, y24d08::part1, y24d08::part2, y24d08::parse),
     solver!(Y24, D14, y24d14::part1, y24d14::part2, y24d14::parse),
     solver!(Y24, D16, y24d16::part1, y24d16::part2, y24d16::parse),
+    solver!(Y24, D17, y24d17::part1, y24d17::part2, y24d17::parse),
 ];
 
 #[derive(Debug)]
@@ -281,6 +282,7 @@ mod tests {
         (Y24, D08, Parts::Both),
         (Y24, D14, Parts::Both),
         (Y24, D16, Parts::Both),
+        (Y24, D17, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
         let filter = Filter::from(
