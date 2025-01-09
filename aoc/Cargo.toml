@@ -12,7 +12,7 @@ derive_more = { version = "1.0.0", features = ["display", "into"] }
 dirs = "5.0.1"
 futures = "0.3.28"
 indoc = "2.0.3"
-itertools = "0.13.0"
+itertools = "0.14.0"
 lazy_errors = { workspace = true }
 lazy-regex = "3.1.0"
 num = "0.4.1"
