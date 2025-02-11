@@ -1,5 +1,7 @@
 use lazy_errors::{prelude::*, Result};
 
+/// Cardinal directions.
+/// TODO: Merge with `IVec2::DIRECTIONS` (CardinalDir vs. DiagonalDir?)
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub enum Direction {
     N,

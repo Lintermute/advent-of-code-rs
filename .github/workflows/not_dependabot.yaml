@@ -149,7 +149,7 @@ jobs:
 
     strategy:
       matrix:
-        rust-version: [ "1.80", "1.79", "1.78", "1.77" ]
+        rust-version: [ "1.83", "1.82" ]
         system: [ ubuntu-latest, windows-latest, macos-latest ]
         branch: ${{ fromJson(needs.init.outputs.branches) }}
         profile: [ dev, release ]

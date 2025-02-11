@@ -49,6 +49,7 @@ const SOLVERS: &[Solver] = &[
     solver!(Y24, D07, y24d07::part1, y24d07::part2, y24d07::parse),
     solver!(Y24, D08, y24d08::part1, y24d08::part2, y24d08::parse),
     solver!(Y24, D14, y24d14::part1, y24d14::part2, y24d14::parse),
+    solver!(Y24, D15, y24d15::part1, y24d15::part2, y24d15::parse),
     solver!(Y24, D16, y24d16::part1, y24d16::part2, y24d16::parse),
 ];
 
@@ -280,6 +281,7 @@ mod tests {
         (Y24, D07, Parts::Both),
         (Y24, D08, Parts::Both),
         (Y24, D14, Parts::Both),
+        (Y24, D15, Parts::Both),
         (Y24, D16, Parts::Both),
     ])]
     fn init_from_filter(filters: &[&str], expected: &[(Year, Day, Parts)]) {
@@ -810,6 +812,8 @@ mod tests {
     #[test_case("y24d08p2")]
     #[test_case("y24d14p1")]
     #[test_case("y24d14p2")]
+    #[test_case("y24d15p1")]
+    #[test_case("y24d15p2")]
     #[test_case("y24d16p1")]
     #[test_case("y24d16p2")]
     #[tokio::test]

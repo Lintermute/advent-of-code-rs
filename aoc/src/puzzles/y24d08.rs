@@ -8,6 +8,7 @@ use lazy_regex::regex;
 
 use crate::parser::{self, Point, Rect};
 
+// TODO: Integrate this into the Grid helper (basically “reverse lookup” cache).
 pub struct Input {
     bounds:   Rect,
     antennas: HashMap<char, Vec<Point>>,

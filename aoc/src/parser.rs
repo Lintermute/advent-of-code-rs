@@ -1,8 +1,9 @@
+pub mod grid;
+pub mod vec2;
+
 mod direction;
-mod grid;
 mod point;
 mod rect;
-mod vector;
 
 use core::str::FromStr;
 
@@ -14,8 +15,11 @@ pub use direction::Direction;
 pub use grid::Grid;
 pub use point::Point;
 pub use rect::Rect;
-pub use vector::Vector;
+pub use vec2::Vec2;
 
+use vec2::UVec2;
+
+// TODO: Check TODOs in callers -- then delete this entirely.
 pub fn parse_bounds(input: &str) -> Result<Rect> {
     let mut lens: Vec<usize> = input
         .lines()
@@ -31,8 +35,8 @@ pub fn parse_bounds(input: &str) -> Result<Rect> {
         .map_err(|v| err!("Line lengths differ: {v:?}"))?;
 
     let p = Point::new(0, 0);
-    let v = Vector::from_unsigned(y, x)?;
-    Ok(Rect::new(p, v))
+    let v = UVec2::new(y, x);
+    Rect::new(p, v)
 }
 
 /// Parallel variant of [`parse_each`] based on [`rayon::ParallelIterator`].
@@ -98,16 +102,19 @@ where
     parse(&next)
 }
 
-pub fn parse_substrs<'a, Shape, T, E, I>(
-    lines: impl Iterator<Item = &'a str> + 'a,
-    mut matcher: impl FnMut(&'a str) -> I + 'a,
-) -> impl Iterator<Item = Result<(Shape, T)>> + 'a
+pub fn parse_substrs<'a, A, T, E, L, M, I>(
+    lines: L,
+    mut matcher: M,
+) -> impl Iterator<Item = Result<(A, T)>> + use<'a, A, T, E, L, M, I>
 where
-    Shape: TryFrom<Rect>,
-    Shape::Error: Into<Stashable>,
+    A: TryFrom<Rect> + TryFrom<Point>,
+    <A as TryFrom<Rect>>::Error: Into<Stashable>,
+    <A as TryFrom<Point>>::Error: Into<Stashable>,
     T: FromStr<Err = E>,
     E: Into<Stashable>,
-    I: Iterator<Item = (usize, usize)> + 'a,
+    L: Iterator<Item = &'a str>,
+    M: FnMut(&'a str) -> I,
+    I: Iterator<Item = (usize, usize)>,
 {
     lines
         .enumerate()
@@ -156,6 +163,48 @@ pub fn regex_captures<'a>(
         })
 }
 
+pub fn parse_substr<A, T, E>(
+    y: usize,
+    x: usize,
+    dx: usize,
+    line: &str,
+) -> Result<(A, T)>
+where
+    A: TryFrom<Rect> + TryFrom<Point>,
+    <A as TryFrom<Rect>>::Error: Into<Stashable>,
+    <A as TryFrom<Point>>::Error: Into<Stashable>,
+    T: FromStr<Err = E>,
+    E: Into<Stashable>,
+{
+    let x_end = x + dx;
+
+    let msg = || format!("Failed to parse {x}..{x_end} in '{line}'");
+
+    if x_end > line.len() {
+        let e = Error::from_message("Substring is out of bounds");
+        return Err(Error::wrap_with(e, msg()));
+    }
+
+    let parsed = parse(&line[x..x_end]).or_wrap_with(msg)?;
+
+    let p = Point::from_unsigned(y, x)?;
+    let a: Result<A> = match dx {
+        0 => Err(err!("Substring is empty")),
+        1 => A::try_from(p).or_wrap(),
+        _ => {
+            let v = UVec2::new(1, dx);
+            let r = Rect::new(p, v);
+            r.and_then(|r| A::try_from(r).or_wrap())
+        }
+    };
+
+    let a = a
+        .or_wrap_with::<Stashable>(|| "Failed to create area")
+        .or_wrap_with(msg)?;
+
+    Ok((a, parsed))
+}
+
 pub fn contains_2d(haystack: &str, needle: &str) -> bool {
     let haystack: Vec<&str> = haystack.lines().collect();
     let needle: Vec<&str> = needle.lines().collect();
@@ -185,43 +234,6 @@ where
     let text = text.as_ref();
     text.parse::<T>()
         .or_wrap_with(|| format!("Failed to parse input '{text}'"))
-}
-
-fn parse_substr<Shape, T, E>(
-    y: usize,
-    x: usize,
-    dx: usize,
-    line: &str,
-) -> Result<(Shape, T)>
-where
-    Shape: TryFrom<Rect>,
-    Shape::Error: Into<Stashable>,
-    T: FromStr<Err = E>,
-    E: Into<Stashable>,
-{
-    let p = Point::from_unsigned(y, x)?;
-    let v = Vector::from_unsigned(1, dx)?;
-    let r = Rect::new(p, v);
-
-    let msg = || format!("Failed to parse {r} in '{line}'");
-
-    if dx == 0 {
-        return Err(Error::wrap_with("Substring is empty", msg()));
-    }
-
-    if (x + dx) > line.len() {
-        return Err(Error::wrap_with("Substring is out of bounds", msg()));
-    }
-
-    let parsed = parse(&line[x..(x + dx)])
-        .or_wrap_with::<Stashable>(|| "Invalid content")
-        .or_wrap_with(msg)?;
-
-    let s = Shape::try_from(r)
-        .or_wrap_with(|| format!("Failed to convert rectangle {r} to shape"))
-        .or_wrap_with(msg)?;
-
-    Ok((s, parsed))
 }
 
 #[cfg(test)]
@@ -386,50 +398,38 @@ mod tests {
     #[test_case(0, 1, 1, "42", Point::new(0, 1), 2)]
     #[test_case(1337, 3, 1, "foo9bar", Point::new(1337, 3), 9)]
     #[test_case(
-        0,
-        0,
-        1,
-        "42",
-        Rect::new(Point::new(0, 0), Vector::new(1, 1)),
-        4
-    )]
+        0, 0, 1, "42",
+        Rect::new(Point::new(0, 0), Vec2::new(1, 1))?,
+        4)]
     #[test_case(
-        0,
-        1,
-        1,
-        "42",
-        Rect::new(Point::new(0, 1), Vector::new(1, 1)),
-        2
-    )]
+        0, 1, 1, "42",
+        Rect::new(Point::new(0, 1), Vec2::new(1, 1))?,
+        2)]
     #[test_case(
-        0,
-        0,
-        2,
-        "42",
-        Rect::new(Point::new(0, 0), Vector::new(1, 2)),
+        0, 0, 2, "42",
+        Rect::new(Point::new(0, 0), Vec2::new(1, 2))?,
         42
     )]
     #[test_case(
-        1337,
-        3,
-        2,
-        "foo42bar",
-        Rect::new(Point::new(1337, 3), Vector::new(1, 2)),
+        1337, 3, 2, "foo42bar",
+        Rect::new(Point::new(1337, 3), Vec2::new(1, 2))?,
         42
     )]
-    fn parse_substr<S>(
+    fn parse_substr<A>(
         y: usize,
         x: usize,
         dx: usize,
         line: &str,
-        expected_shape: S,
+        expected_shape: A,
         expected_num: u8,
     ) -> Result<()>
     where
-        S: TryFrom<Rect> + PartialEq + fmt::Debug,
-        S::Error: Into<Stashable>,
+        A: PartialEq + fmt::Debug,
+        A: TryFrom<Rect> + TryFrom<Point>,
+        <A as TryFrom<Rect>>::Error: Into<Stashable>,
+        <A as TryFrom<Point>>::Error: Into<Stashable>,
     {
-        let (rect, num): (S, u8) = super::parse_substr(y, x, dx, line)?;
+        let (rect, num): (A, u8) = super::parse_substr(y, x, dx, line)?;
 
         assert_eq!(rect, expected_shape);
         assert_eq!(num, expected_num);
@@ -439,25 +439,27 @@ mod tests {
 
     #[test_case(0, 0, 0, "42", PhantomData::<Point>, "empty")]
     #[test_case(0, 2, 1, "42", PhantomData::<Point>, "out of bounds")]
-    #[test_case(0, 0, 1, "-1", PhantomData::<Point>, "content")]
+    #[test_case(0, 0, 1, "-1", PhantomData::<Point>, "invalid digit")]
     #[test_case(0, 0, 0, "42", PhantomData::<Rect>, "empty")]
     #[test_case(0, 0, 3, "42", PhantomData::<Rect>, "out of bounds")]
     #[test_case(0, 1, 2, "42", PhantomData::<Rect>, "out of bounds")]
     #[test_case(0, 2, 1, "42", PhantomData::<Rect>, "out of bounds")]
-    #[test_case(0, 0, 2, "-1", PhantomData::<Rect>, "content")]
-    fn parse_substr_err<S>(
+    #[test_case(0, 0, 2, "-1", PhantomData::<Rect>, "invalid digit")]
+    fn parse_substr_err<A>(
         y: usize,
         x: usize,
         dx: usize,
         line: &str,
-        _: PhantomData<S>,
+        _: PhantomData<A>,
         expected_msg: &str,
     ) -> Result<()>
     where
-        S: TryFrom<Rect> + PartialEq + fmt::Debug,
-        S::Error: Into<Stashable>,
+        A: PartialEq + fmt::Debug,
+        A: TryFrom<Rect> + TryFrom<Point>,
+        <A as TryFrom<Rect>>::Error: Into<Stashable>,
+        <A as TryFrom<Point>>::Error: Into<Stashable>,
     {
-        let result: Result<(S, u8)> = super::parse_substr(y, x, dx, line);
+        let result: Result<(A, u8)> = super::parse_substr(y, x, dx, line);
         let err = result.unwrap_err();
         let msg = err.to_string();
         dbg!(&msg);

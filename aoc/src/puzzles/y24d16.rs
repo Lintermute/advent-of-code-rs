@@ -14,7 +14,8 @@ impl core::str::FromStr for Input {
 
     fn from_str(input: &str) -> Result<Self> {
         let grid = parse_grid(input)?;
-        let (s, e) = parse_start_and_end(input)?;
+        let s = find_char(&grid, 'S')?;
+        let e = find_char(&grid, 'E')?;
         Ok(Self { grid, s, e })
     }
 }
@@ -57,31 +58,23 @@ fn parse_grid(input: &str) -> Result<Grid> {
     Grid::from_str(input, tiles)
 }
 
-fn parse_start_and_end(input: &str) -> Result<(Point, Point)> {
-    let s_or_e = |line| str::match_indices(line, &['S', 'E']);
-    let s_or_e = |line| parser::pattern_matches(line, s_or_e);
-    let [first, second] = parser::parse_substrs(input.lines(), s_or_e)
-        .collect::<Result<Vec<_>>>()?
-        .try_into()
-        .map_err(|_| err!("Failed to find S and/or E"))?;
-
-    match (first, second) {
-        ((s, 'S'), (e, 'E')) => Ok((s, e)),
-        ((e, 'E'), (s, 'S')) => Ok((s, e)),
-        _ => Err(err!("Failed to parse S/E: '{first:?}/{second:?}'")),
-    }
+fn find_char(grid: &Grid, c: char) -> Result<Point> {
+    grid.find_exactly_one(&c)
+        .map(|e| e.area())
+        .copied()
+        .or_wrap_with(|| "Failed to find char '{c}' in grid")
 }
 
 fn successors(
     input: &Input,
     p: &Point,
     d: Direction,
-) -> impl Iterator<Item = ((Point, Direction), u64)> {
+) -> Vec<((Point, Direction), u64)> {
     input
         .grid
-        .neighbors(p)
-        .into_iter()
-        .map(move |(p2, d2)| ((p2, d2), 1 + rot_cost(d, d2)))
+        .find_all_neighbors(p)
+        .map(|(e, d2)| ((*e.area(), d2), 1 + rot_cost(d, d2)))
+        .collect()
 }
 
 fn rot_cost(d1: Direction, d2: Direction) -> u64 {

@@ -82,7 +82,7 @@ impl FromStr for Command {
             "forward" => Command::F(val),
             "down" => Command::D(val),
             "up" => Command::U(val),
-            _ => panic!("Unexpected input: {cmd}"),
+            _ => return Err(err!("Unexpected input: {cmd}")),
         };
 
         Ok(cmd)
