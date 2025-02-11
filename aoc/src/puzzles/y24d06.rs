@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use itertools::Itertools;
 use lazy_errors::{prelude::*, Result};
 
-use crate::parser::{self, Direction, Point, Rect, Vector};
+use crate::parser::{self, Direction, Point, Rect, Vec2};
 
 pub fn parse(input: &str) -> Result<MultiGrid> {
     let bounds = parser::parse_bounds(input)?;
@@ -45,6 +45,7 @@ pub fn part2(grid: &MultiGrid) -> Result<usize> {
     Ok(count)
 }
 
+// TODO: Replace this by Input { g: Grid, trace: HashSet<Point> }.
 #[derive(Debug)]
 pub struct MultiGrid {
     bounds: Rect,
@@ -65,7 +66,7 @@ impl Guard {
         let mut d = self.d;
 
         loop {
-            p = self.p + Vector::from(d);
+            p = self.p + Vec2::from(d);
             if !stuff.contains(&p) {
                 break;
             }

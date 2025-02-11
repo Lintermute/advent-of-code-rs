@@ -1,8 +1,10 @@
-use std::{collections::HashMap, iter};
+use core::iter;
+
+use std::collections::HashMap;
 
 use lazy_errors::Result;
 
-use crate::parser::{self, Point, Vector};
+use crate::parser::{self, Point, Vec2};
 
 pub fn parse(input: &str) -> Result<HashMap<Point, char>> {
     parser::parse_substrs(input.lines(), parser::chars).collect()
@@ -13,7 +15,7 @@ pub fn part1(data: &HashMap<Point, char>) -> Result<u32> {
         .iter()
         .filter(|(_, &char)| char == 'X')
         .map(|(&p, _)| {
-            let count = Vector::DIRECTIONS
+            let count = Vec2::DIRECTIONS
                 .iter()
                 .filter(|&&d| {
                     let pos = iter::successors(Some(p + d), |&p| Some(p + d));
@@ -23,7 +25,7 @@ pub fn part1(data: &HashMap<Point, char>) -> Result<u32> {
                 .count();
 
             assert!(
-                Vector::DIRECTIONS.len() <= usize::try_from(u32::MAX).unwrap()
+                Vec2::DIRECTIONS.len() <= usize::try_from(u32::MAX).unwrap()
             );
             count as u32
         })
@@ -33,10 +35,10 @@ pub fn part1(data: &HashMap<Point, char>) -> Result<u32> {
 }
 
 pub fn part2(data: &HashMap<Point, char>) -> Result<u32> {
-    let tl = Vector::new(-1, -1);
-    let tr = Vector::new(-1, 1);
-    let bl = Vector::new(1, -1);
-    let br = Vector::new(1, 1);
+    let tl = Vec2::new(-1, -1);
+    let tr = Vec2::new(-1, 1);
+    let bl = Vec2::new(1, -1);
+    let br = Vec2::new(1, 1);
 
     let sum = data
         .iter()

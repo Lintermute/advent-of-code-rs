@@ -49,7 +49,11 @@ fn parse_symbols(input: &str) -> Result<Vec<(Point, char)>> {
 fn parse_numbers(input: &str) -> Result<Vec<(Rect, u16)>> {
     let numbers = |line| regex_matches(line, regex!(r"\d+"));
     parse_substrs(input.lines(), numbers)
-        .map_ok(|(rect, number): (Rect, _)| (rect.grow(), number))
+        .map(|e| {
+            let (rect, number): (Rect, _) = e?;
+            let grown = rect.grow()?;
+            Ok((grown, number))
+        })
         .try_collect()
 }
 
