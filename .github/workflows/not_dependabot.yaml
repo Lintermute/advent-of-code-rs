@@ -140,7 +140,41 @@ jobs:
 
     # Run the actual tests (note that we already checked dependencies above).
     - name: Run CI checks
-      run: xtask ci all --skip-dependency-checks
+      run: xtask ci all --skip-tarpaulin --skip-dependency-checks
+
+  coverage:
+    needs: init
+    timeout-minutes: 15
+    runs-on: ${{ matrix.system }}
+
+    strategy:
+      matrix:
+        # Running tarpaulin should produce comparable results on all systems.
+        # However, compiling doctests via tarpaulin fails on macOS (2025-02-11).
+        system: [ ubuntu-latest ]
+        branch: ${{ fromJson(needs.init.outputs.branches) }}
+        profile: [ dev, release ]
+
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ matrix.branch }}
+
+    # FIXME: Remove nightly once tarpaulin can run doctests on stable again
+    - name: Install nightly Rust toolchain
+      uses: dtolnay/rust-toolchain@nightly
+
+    - name: Install stable Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-tarpaulin
+      uses: taiki-e/install-action@v2
+      with:
+        tool: cargo-tarpaulin
+
+    - name: Check coverage
+      run: cargo xtask ci tarpaulin --profile ${{ matrix.profile }}
 
   msrv:
     needs: init
