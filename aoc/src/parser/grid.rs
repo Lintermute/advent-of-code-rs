@@ -118,9 +118,10 @@ where
             &[] => 0,
             &[x_max] => x_max,
             others => {
-                errs.push(format!("Line lengths differ: {others:?}"));
-                try2!(errs.ok());
-                unreachable!()
+                let errs = errs.push_and_convert(format!(
+                    "Line lengths differ: {others:?}"
+                ));
+                return Err(errs.into());
             }
         };
 
