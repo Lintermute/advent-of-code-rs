@@ -53,12 +53,14 @@ jobs:
       with:
         tool: cargo-hack
 
-    # FIXME: `xtask ci` may run `cargo build`, overwriting its own binary.
-    # FIXME: This is not possible on Windows, so install it before running it.
     - name: Check old commits on ${{ matrix.branch }}
+      # FIXME: `xtask ci` may run `cargo build`, overwriting its own binary.
+      # FIXME: This is not possible on Windows, so install it before running it.
+      # Runs `cargo clean` to avoid running out of space after X hours.
       run: >
         git rebase
         --root
         --rebase-merges
+        --exec 'cargo clean'
         --exec 'cargo install --path xtask'
         --exec 'xtask ci all --skip-moving-targets'
